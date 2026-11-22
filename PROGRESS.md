@@ -6,7 +6,7 @@
 
 ## Status
 - **Current step:** 0.2 done
-- **Next:** 0.3 — dev site (`forge site provision`) + Rovo
+- **Next:** 0.3 — USER confirms site access + Rovo visible
 
 ## Checklist
 
@@ -19,6 +19,8 @@
 - [x] 0.2 Scoped API token (Forge scopes) + `forge login` (credentials in Windows keychain; `forge whoami` OK)
   - Env vars `FORGE_EMAIL`/`FORGE_API_TOKEN` NOT set yet — deferred to 2.6 (demo script)
 - [ ] 0.3 Dev site (`forge site provision` or go.atlassian.com/cloud-dev) + Rovo enabled
+  - [x] Demo site provisioned: https://one-atlas-ejjo.atlassian.net (expires 2027-02-20). Install with `forge install --demo-site` or `--site one-atlas-ejjo.atlassian.net`
+  - [ ] USER: confirm login works + "Ask Rovo" visible
 - [ ] 0.4 Devpost registration, public GitHub repo `decision-ledger` (MIT), git remote
 
 ### Phase 1 — Scaffold (Dec 5)
@@ -56,4 +58,5 @@
 
 ## Decisions made
 - 2026-11-22: Using Node 24 LTS (latest patch) for the Forge CLI.
+- 2026-11-23: Using Forge demo site (enterprise Jira/Confluence/JSM/Rovo, has seeded data) instead of free dev site.
 - 2026-11-23: Forge CLI auth via keychain (`forge login`) instead of env vars, for simplicity.
