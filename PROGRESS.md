@@ -5,8 +5,8 @@
 **Deadline:** submit by Dec 22, 2026, 10:00 Riyadh (hard deadline 23:00 Riyadh / 12:00 PST).
 
 ## Status
-- **Current step:** 0.1 done
-- **Next:** 0.2 — scoped API token + `forge login`
+- **Current step:** 0.2 done
+- **Next:** 0.3 — dev site (`forge site provision`) + Rovo
 
 ## Checklist
 
@@ -16,7 +16,8 @@
   - [x] `@forge/cli@latest` installed globally
   - [x] Node upgraded 24.12.0 → 24.22.3 via `winget upgrade --id OpenJS.NodeJS.24` (CLI requires `^22.23.4 || ^24.22.1 || >=26.12.1`)
   - [x] Forge CLI 15.1.0 runs
-- [ ] 0.2 Scoped API token → `FORGE_EMAIL` / `FORGE_API_TOKEN` env vars, `forge login`
+- [x] 0.2 Scoped API token (Forge scopes) + `forge login` (credentials in Windows keychain; `forge whoami` OK)
+  - Env vars `FORGE_EMAIL`/`FORGE_API_TOKEN` NOT set yet — deferred to 2.6 (demo script)
 - [ ] 0.3 Dev site (`forge site provision` or go.atlassian.com/cloud-dev) + Rovo enabled
 - [ ] 0.4 Devpost registration, public GitHub repo `decision-ledger` (MIT), git remote
 
@@ -51,7 +52,8 @@
 - [ ] 4.6 USER: submit on Devpost, check links logged out
 
 ## Known issues
-- None.
+- 2.6 demo data script calls Jira/Confluence REST APIs; the Forge-scoped token likely can't. Plan: user creates a second token with Jira+Confluence scopes (or classic token) stored in env vars.
 
 ## Decisions made
 - 2026-11-22: Using Node 24 LTS (latest patch) for the Forge CLI.
+- 2026-11-23: Forge CLI auth via keychain (`forge login`) instead of env vars, for simplicity.
