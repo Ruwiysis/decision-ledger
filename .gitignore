@@ -4,3 +4,7 @@ node_modules/
 *.log
 .DS_Store
 coverage/
+
+# Private planning brief (kept local)
+PLAN.md
+CLAUDE_CODE_PROMPT.md
