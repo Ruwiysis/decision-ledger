@@ -5,8 +5,8 @@
 **Deadline:** submit by Dec 22, 2026, 10:00 Riyadh (hard deadline 23:00 Riyadh / 12:00 PST).
 
 ## Status
-- **Current step:** 1.4 — USER verifies panel / ledger page / agent in browser
-- **Next:** 2.1 — DB migrations + `src/db/decisions.js` + unit tests
+- **Current step:** 2.1 — database layer
+- **Next:** 2.2 — Confluence capture trigger
 
 ## Checklist
 
@@ -39,7 +39,7 @@
 - [x] 1.3 lint clean, deploy, install on Jira + Confluence
   - Deployed v2.0.0 to development; installed Jira + Confluence on one-atlas-ejjo (first Jira install hit a transient 500, retry OK)
   - Ledger URL: https://one-atlas-ejjo.atlassian.net/wiki/apps/7674119a-33d5-4976-bc59-5f8955c6e895/8506e278-b2ea-4584-8460-c29da5c7e56b/decision-ledger
-- [ ] 1.4 USER: confirm panel, global page, agent visible
+- [x] 1.4 USER confirmed: Jira panel, Confluence ledger page and Decision Keeper agent all render
 
 ### Phase 2 — Core features (Dec 6–13)
 - [ ] 2.1 DB migrations + `src/db/decisions.js` + unit tests
@@ -75,4 +75,5 @@
 - 2026-11-23: Jira = required product, Confluence = optional (guard panel is core; data residency follows Jira).
 - 2026-11-23: Ignoring template AGENTS.md persona/pun instructions; keeping its technical guidance.
 - 2026-11-23: **No Marketplace listing; Marketplace bonus dropped.** Single app shared via installation link for judges. Removed from cut order and submission text. (Reasons: multi-app apps can only be listed paid; submitted apps can't use install links.)
+- 2026-11-23: **UI copy uses current Jira terms:** "work item" (not issue) and "space" (not project) in all user-facing text, agent prompt, skill, video and submission. Code/API names (issue, project) unchanged.
 - 2026-11-23: Forge CLI auth via keychain (`forge login`) instead of env vars, for simplicity.
