@@ -22,6 +22,8 @@
   - [x] Demo site provisioned: https://one-atlas-ejjo.atlassian.net (expires 2027-02-20). Install with `forge install --demo-site` or `--site one-atlas-ejjo.atlassian.net`
   - [x] USER confirmed: Jira, Confluence, Rovo all work
 - [ ] 0.4 Devpost registration, public GitHub repo `decision-ledger` (MIT), git remote
+  - [x] Repo https://github.com/Ruwiysis/decision-ledger (public, MIT, remote `origin`)
+  - [ ] USER: Devpost registration confirmed
 
 ### Phase 1 — Scaffold (Dec 5)
 - [ ] 1.1 `forge create` (UI Kit, Jira issue panel) → `decision-ledger`
@@ -59,4 +61,5 @@
 ## Decisions made
 - 2026-11-22: Using Node 24 LTS (latest patch) for the Forge CLI.
 - 2026-11-23: Using Forge demo site (enterprise Jira/Confluence/JSM/Rovo, has seeded data) instead of free dev site.
+- 2026-11-23: PLAN.md + CLAUDE_CODE_PROMPT.md are gitignored (local only); scrubbed from history before first push.
 - 2026-11-23: Forge CLI auth via keychain (`forge login`) instead of env vars, for simplicity.
