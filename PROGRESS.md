@@ -5,8 +5,8 @@
 **Deadline:** submit by Dec 22, 2026, 10:00 Riyadh (hard deadline 23:00 Riyadh / 12:00 PST).
 
 ## Status
-- **Current step:** Phase 0 complete
-- **Next:** 1.1 — `forge create` (UI Kit, Jira issue panel) → `decision-ledger`
+- **Current step:** 1.4 — USER verifies panel / ledger page / agent in browser
+- **Next:** 2.1 — DB migrations + `src/db/decisions.js` + unit tests
 
 ## Checklist
 
@@ -26,9 +26,19 @@
   - [x] USER: Devpost registration confirmed
 
 ### Phase 1 — Scaffold (Dec 5)
-- [ ] 1.1 `forge create` (UI Kit, Jira issue panel) → `decision-ledger`
-- [ ] 1.2 Full manifest + folders + packages
-- [ ] 1.3 lint clean, deploy, install on Jira + Confluence
+- [x] 1.1 `forge create` (UI Kit, Jira issue panel) → `decision-ledger`
+  - App ID `ari:cloud:ecosystem::app/7674119a-33d5-4976-bc59-5f8955c6e895`, in a new Developer Space
+  - Scaffold created in `app-tmp/` then moved to repo root
+- [x] 1.2 Full manifest + folders + packages
+  - All modules verified against current docs via Forge MCP (rovo:skill + rovo:mcp are Preview)
+  - Jira required, Confluence optional (`app.compatibility`)
+  - Agent prompt is a resource: `prompt: resource:agent-prompt;prompt.md` (dir `agent/`)
+  - Migrations via `scheduledTrigger` (hourly) — will also run lazily on first DB use
+  - Scopes: read:jira-work, write:jira-work, read:page:confluence, read:confluence-content.summary
+  - Swapped template's `-next` prerelease packages for stable: api 8.5, bridge 7.3, react 12.5, resolver 2.0.2, sql 4.0.10
+- [x] 1.3 lint clean, deploy, install on Jira + Confluence
+  - Deployed v2.0.0 to development; installed Jira + Confluence on one-atlas-ejjo (first Jira install hit a transient 500, retry OK)
+  - Ledger URL: https://one-atlas-ejjo.atlassian.net/wiki/apps/7674119a-33d5-4976-bc59-5f8955c6e895/8506e278-b2ea-4584-8460-c29da5c7e56b/decision-ledger
 - [ ] 1.4 USER: confirm panel, global page, agent visible
 
 ### Phase 2 — Core features (Dec 6–13)
@@ -56,10 +66,14 @@
 - [ ] 4.6 USER: submit on Devpost, check links logged out
 
 ## Known issues
+- **Marketplace vs judges' install link (4.2/4.3):** apps submitted for Marketplace listing can't be shared via installation link. Likely need a separate unlicensed copy of the app for the judges' link.
+- **Marketplace paid-only:** multi-app (Jira+Confluence) compatible apps can only be listed as *paid* apps. Revisit at 4.2 (paid listing w/ free tier? or Jira-only variant?).
 - 2.6 demo data script calls Jira/Confluence REST APIs; the Forge-scoped token likely can't. Plan: user creates a second token with Jira+Confluence scopes (or classic token) stored in env vars.
 
 ## Decisions made
 - 2026-11-22: Using Node 24 LTS (latest patch) for the Forge CLI.
 - 2026-11-23: Using Forge demo site (enterprise Jira/Confluence/JSM/Rovo, has seeded data) instead of free dev site.
 - 2026-11-23: PLAN.md + CLAUDE_CODE_PROMPT.md are gitignored (local only); scrubbed from history before first push.
+- 2026-11-23: Jira = required product, Confluence = optional (guard panel is core; data residency follows Jira).
+- 2026-11-23: Ignoring template AGENTS.md persona/pun instructions; keeping its technical guidance.
 - 2026-11-23: Forge CLI auth via keychain (`forge login`) instead of env vars, for simplicity.
