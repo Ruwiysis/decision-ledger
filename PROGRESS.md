@@ -59,15 +59,13 @@
 
 ### Phase 4 — Polish & submission (Dec 18–22)
 - [ ] 4.1 Security + app review, states, 2nd-user access test, production deploy
-- [ ] 4.2 Marketplace: privacy policy, listing, screenshots, submit (by Dec 18)
-- [ ] 4.3 Distribution install link, test on 2nd site
+- [ ] 4.2 Distribution prep: privacy policy page (GitHub Pages) + app details for Sharing — **no Marketplace listing**
+- [ ] 4.3 Distribution install link (single app, "Sharing"), test on 2nd site
 - [ ] 4.4 Video script + architecture diagram; USER records + uploads
-- [ ] 4.5 README.md + SUBMISSION.md
+- [ ] 4.5 README.md + SUBMISSION.md (bonus sections: Agents, MCP, Teamwork Graph if shipped — no Marketplace)
 - [ ] 4.6 USER: submit on Devpost, check links logged out
 
 ## Known issues
-- **Marketplace vs judges' install link (4.2/4.3):** apps submitted for Marketplace listing can't be shared via installation link. Likely need a separate unlicensed copy of the app for the judges' link.
-- **Marketplace paid-only:** multi-app (Jira+Confluence) compatible apps can only be listed as *paid* apps. Revisit at 4.2 (paid listing w/ free tier? or Jira-only variant?).
 - 2.6 demo data script calls Jira/Confluence REST APIs; the Forge-scoped token likely can't. Plan: user creates a second token with Jira+Confluence scopes (or classic token) stored in env vars.
 
 ## Decisions made
@@ -76,4 +74,5 @@
 - 2026-11-23: PLAN.md + CLAUDE_CODE_PROMPT.md are gitignored (local only); scrubbed from history before first push.
 - 2026-11-23: Jira = required product, Confluence = optional (guard panel is core; data residency follows Jira).
 - 2026-11-23: Ignoring template AGENTS.md persona/pun instructions; keeping its technical guidance.
+- 2026-11-23: **No Marketplace listing; Marketplace bonus dropped.** Single app shared via installation link for judges. Removed from cut order and submission text. (Reasons: multi-app apps can only be listed paid; submitted apps can't use install links.)
 - 2026-11-23: Forge CLI auth via keychain (`forge login`) instead of env vars, for simplicity.
