@@ -1,0 +1,194 @@
+modules:
+  # ---------------------------------------------------------------- UI
+  jira:issuePanel:
+    - key: decision-guard-panel
+      resource: panel
+      resolver:
+        function: resolver
+      render: native
+      title: Related decisions
+      icon: https://developer.atlassian.com/platform/forge/images/icons/issue-panel-icon.svg
+
+  confluence:globalPage:
+    - key: decision-ledger-page
+      resource: ledger
+      resolver:
+        function: resolver
+      render: native
+      title: Decision Ledger
+      route: decision-ledger
+
+  # ---------------------------------------------------------- Capture
+  trigger:
+    - key: confluence-page-trigger
+      function: on-confluence-page
+      events:
+        - avi:confluence:created:page
+        - avi:confluence:updated:page
+    - key: jira-comment-trigger
+      function: on-jira-comment
+      events:
+        - avi:jira:commented:issue
+      filter:
+        ignoreSelf: true
+    - key: jira-issue-created-trigger
+      function: on-jira-issue-created
+      events:
+        - avi:jira:created:issue
+      filter:
+        ignoreSelf: true
+
+  # Applies Forge SQL schema migrations (Forge also re-runs pending/failed ones).
+  scheduledTrigger:
+    - key: db-migrations
+      function: run-migrations
+      interval: hour
+
+  # ------------------------------------------------------------- Rovo
+  rovo:agent:
+    - key: decision-agent
+      name: Decision Keeper
+      description: Finds past team decisions, explains why they were made, and checks whether new work conflicts with them.
+      prompt: resource:agent-prompt;prompt.md
+      conversationStarters:
+        - Why did we make this decision?
+        - Does this ticket go against any past decision?
+        - Log a new decision
+      actions:
+        - search-decisions
+        - get-decision
+        - check-conflicts
+        - log-decision
+      skills:
+        - decision-guard
+
+  action:
+    - key: search-decisions
+      name: Search decisions
+      function: action-search-decisions
+      actionVerb: GET
+      description: >
+        Search the team's Decision Ledger for past decisions matching a topic or question.
+        Returns the top 5 matches with title, rationale, status, decider, date and source link.
+      inputs:
+        query:
+          title: Query
+          type: string
+          required: true
+          description: Keywords or a question describing the decision to find, e.g. "PostgreSQL" or "why did we pick Moyasar".
+    - key: get-decision
+      name: Get decision
+      function: action-get-decision
+      actionVerb: GET
+      description: Get the full details of one decision from the Decision Ledger by its ID.
+      inputs:
+        decisionId:
+          title: Decision ID
+          type: string
+          required: true
+          description: The numeric ID of the decision, as returned by search-decisions or check-conflicts.
+    - key: check-conflicts
+      name: Check conflicts
+      function: action-check-conflicts
+      actionVerb: GET
+      description: >
+        Check a proposal, plan or Jira issue against past decisions. Returns related decisions
+        with relevance scores and the words that matched, so the agent can judge whether it conflicts.
+      inputs:
+        text:
+          title: Proposal text or issue key
+          type: string
+          required: true
+          description: Either free text describing the planned work, or a Jira issue key such as ABC-123.
+    - key: log-decision
+      name: Log decision
+      function: action-log-decision
+      actionVerb: CREATE
+      description: Record a new decision in the Decision Ledger. Only call after the user has confirmed the title and rationale.
+      inputs:
+        title:
+          title: Decision
+          type: string
+          required: true
+          description: A short statement of what was decided, e.g. "Use Moyasar for payments".
+        rationale:
+          title: Rationale
+          type: string
+          required: true
+          description: Why the decision was made.
+        sourceUrl:
+          title: Source URL
+          type: string
+          required: false
+          description: Optional link to where the decision was discussed.
+
+  rovo:skill:
+    - key: decision-guard
+      source:
+        dir: skills/decision-guard
+      dependencies:
+        tools:
+          - search-decisions
+          - check-conflicts
+
+  rovo:mcp:
+    - key: decision-ledger-mcp
+      name: Decision Ledger MCP
+      tools:
+        - search-decisions
+        - get-decision
+        - check-conflicts
+        - log-decision
+
+  # ---------------------------------------------------------- Storage
+  sql:
+    - key: main
+      engine: mysql
+
+  # -------------------------------------------------------- Functions
+  function:
+    - key: resolver
+      handler: index.resolver
+    - key: on-confluence-page
+      handler: index.onConfluencePage
+    - key: on-jira-comment
+      handler: index.onJiraComment
+    - key: on-jira-issue-created
+      handler: index.onJiraIssueCreated
+    - key: run-migrations
+      handler: index.runMigrations
+    - key: action-search-decisions
+      handler: index.searchDecisions
+    - key: action-get-decision
+      handler: index.getDecision
+    - key: action-check-conflicts
+      handler: index.checkConflicts
+    - key: action-log-decision
+      handler: index.logDecision
+
+resources:
+  - key: panel
+    path: src/frontend/panel.jsx
+  - key: ledger
+    path: src/frontend/ledger.jsx
+  - key: agent-prompt
+    path: agent
+
+permissions:
+  scopes:
+    - read:jira-work
+    - write:jira-work
+    - read:page:confluence
+    - read:confluence-content.summary
+
+app:
+  runtime:
+    name: nodejs24.x
+    memoryMB: 256
+    architecture: arm64
+  id: ari:cloud:ecosystem::app/7674119a-33d5-4976-bc59-5f8955c6e895
+  compatibility:
+    jira:
+      required: true
+    confluence:
+      required: false
