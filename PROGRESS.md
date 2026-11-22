@@ -5,8 +5,8 @@
 **Deadline:** submit by Dec 22, 2026, 10:00 Riyadh (hard deadline 23:00 Riyadh / 12:00 PST).
 
 ## Status
-- **Current step:** 0.2 done
-- **Next:** 0.3 — USER confirms site access + Rovo visible
+- **Current step:** 0.3 done
+- **Next:** 0.4 — Devpost registration + GitHub repo
 
 ## Checklist
 
@@ -18,9 +18,9 @@
   - [x] Forge CLI 15.1.0 runs
 - [x] 0.2 Scoped API token (Forge scopes) + `forge login` (credentials in Windows keychain; `forge whoami` OK)
   - Env vars `FORGE_EMAIL`/`FORGE_API_TOKEN` NOT set yet — deferred to 2.6 (demo script)
-- [ ] 0.3 Dev site (`forge site provision` or go.atlassian.com/cloud-dev) + Rovo enabled
+- [x] 0.3 Dev site (`forge site provision` or go.atlassian.com/cloud-dev) + Rovo enabled
   - [x] Demo site provisioned: https://one-atlas-ejjo.atlassian.net (expires 2027-02-20). Install with `forge install --demo-site` or `--site one-atlas-ejjo.atlassian.net`
-  - [ ] USER: confirm login works + "Ask Rovo" visible
+  - [x] USER confirmed: Jira, Confluence, Rovo all work
 - [ ] 0.4 Devpost registration, public GitHub repo `decision-ledger` (MIT), git remote
 
 ### Phase 1 — Scaffold (Dec 5)
