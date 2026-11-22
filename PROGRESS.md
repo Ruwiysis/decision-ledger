@@ -5,16 +5,17 @@
 **Deadline:** submit by Dec 22, 2026, 10:00 Riyadh (hard deadline 23:00 Riyadh / 12:00 PST).
 
 ## Status
-- **Current step:** 0.1 — waiting on user to upgrade Node.js
+- **Current step:** 0.1 done
 - **Next:** 0.2 — scoped API token + `forge login`
 
 ## Checklist
 
 ### Phase 0 — Setup
-- [ ] 0.1 Machine check (node 22/24 LTS, npm, git, forge CLI)
+- [x] 0.1 Machine check (node 22/24 LTS, npm, git, forge CLI)
   - [x] npm 11.6.2, git 2.53.0
   - [x] `@forge/cli@latest` installed globally
-  - [ ] Node upgrade: have v24.12.0; Forge CLI requires `^22.23.4 || ^24.22.1 || >=26.12.1`
+  - [x] Node upgraded 24.12.0 → 24.22.3 via `winget upgrade --id OpenJS.NodeJS.24` (CLI requires `^22.23.4 || ^24.22.1 || >=26.12.1`)
+  - [x] Forge CLI 15.1.0 runs
 - [ ] 0.2 Scoped API token → `FORGE_EMAIL` / `FORGE_API_TOKEN` env vars, `forge login`
 - [ ] 0.3 Dev site (`forge site provision` or go.atlassian.com/cloud-dev) + Rovo enabled
 - [ ] 0.4 Devpost registration, public GitHub repo `decision-ledger` (MIT), git remote
@@ -50,7 +51,7 @@
 - [ ] 4.6 USER: submit on Devpost, check links logged out
 
 ## Known issues
-- Forge CLI refuses to run on Node v24.12.0 (needs ≥ 24.22.1).
+- None.
 
 ## Decisions made
 - 2026-11-22: Using Node 24 LTS (latest patch) for the Forge CLI.
