@@ -56,7 +56,10 @@ export function splitInlineRationale(text) {
  *   2. the first non-empty paragraph right after the decision list (a "Because: ..." prefix is stripped);
  *   3. the nearest heading above the decision list ("Section: <heading>").
  *
- * Returns [{ localId, title, rationale, heading }].
+ * A Confluence date (/date) inside the decision is its decision date (`decidedAt`, ISO) and is
+ * left out of the title — so teams can record decisions with the day they were actually made.
+ *
+ * Returns [{ localId, title, rationale, heading, decidedAt }].
  */
 export function extractDecisions(doc) {
   const out = [];
@@ -75,13 +78,21 @@ export function extractDecisions(doc) {
         for (const item of node.content || []) {
           if (item?.type !== 'decisionItem') continue;
           if (String(item.attrs?.state || '').toUpperCase() !== 'DECIDED') continue;
-          const raw = clean(adfToText(item.content || []));
+          const inlineNodes = item.content || [];
+          const dateNode = findDate(inlineNodes);
+          const raw = clean(adfToText(withoutDates(inlineNodes))).replace(/[\s,;:–—-]+$/, '');
           if (!raw) continue;
           const { title, rationale: inline } = splitInlineRationale(raw);
           let rationale = inline;
           if (!rationale && following) rationale = following.replace(WHY_PREFIX, '');
           if (!rationale && heading) rationale = `Section: ${heading}`;
-          out.push({ localId: item.attrs?.localId || null, title, rationale, heading: heading || null });
+          out.push({
+            localId: item.attrs?.localId || null,
+            title,
+            rationale,
+            heading: heading || null,
+            decidedAt: dateNode ? dateFromNode(dateNode) : null,
+          });
         }
         continue;
       }
@@ -93,6 +104,30 @@ export function extractDecisions(doc) {
   };
   visit(doc?.content || [], null);
   return out;
+}
+
+/** First ADF `date` node in a list of (possibly nested) inline nodes. */
+function findDate(nodes) {
+  for (const n of nodes || []) {
+    if (n?.type === 'date') return n;
+    const inner = findDate(n?.content);
+    if (inner) return inner;
+  }
+  return null;
+}
+
+function withoutDates(nodes) {
+  return (nodes || [])
+    .filter((n) => n?.type !== 'date')
+    .map((n) => (n?.content ? { ...n, content: withoutDates(n.content) } : n));
+}
+
+/** ADF date attrs.timestamp is epoch milliseconds (as a string). */
+function dateFromNode(node) {
+  const ms = Number(node?.attrs?.timestamp);
+  if (!Number.isFinite(ms) || ms <= 0) return null;
+  const d = new Date(ms);
+  return Number.isNaN(d.getTime()) ? null : d.toISOString();
 }
 
 /** Text of the first non-empty paragraph at or after `start`, stopping at headings/decisions. */

@@ -71,7 +71,11 @@
   - `scripts/demo-data.mjs`: space NAKHLA, 9 pages / 25 decisions, Jira space NP with 15 work items (3 conflicts, 2 with `Decision:` comments). **Fictional vendors** (Rimal Pay, Sahel Gateway, Tahqeeq KYC) — no third-party trademarks
   - `scripts/seed-demo.mjs` (`npm run seed`): classic API token via env (ATLASSIAN_SITE/EMAIL/API_TOKEN), lookup-before-create, 429 retry, waits 180s between pages and work items so capture runs first, `--dry-run`, `--confluence-only`, `--jira-only`, `--project=KEY`
   - `test/demo-data.test.mjs`: offline end-to-end — all 25 rationales captured; 3 conflicts flagged (scores 22/39/57 ≥ 7); 12 others stay below threshold. 57/57 tests
-- [ ] 2.7 USER: end-to-end browser test
+- [ ] 2.7 USER: end-to-end browser test — in progress
+  - Fix 1: search results now in relevance order (table remounts without date sort) + weak tail dropped (score < max(2, 25% of top))
+  - Fix 2: a Confluence /date inside a Decision = decision date (title excludes it; explicit dates update decided_at on re-capture). Demo pages carry realistic 2025–2026 dates; `npm run seed -- --confluence-only --update` rewrites them
+  - Fix 3: rationale capitalised for display
+  - Browser cache showed the old ledger once → hard refresh fixed it
 
 ### Phase 3 — Rovo, MCP, Teamwork Graph (Dec 14–17)
 - [ ] 3.1 Four action functions

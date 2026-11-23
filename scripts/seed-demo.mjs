@@ -11,6 +11,7 @@
 //   npm run seed -- --jira-only        # only work items (run after pages were captured)
 //   npm run seed -- --wait=180         # seconds to wait between pages and work items (default 180)
 //   npm run seed -- --project=MC       # use an existing Jira space instead of creating NP
+//   npm run seed -- --confluence-only --update   # rewrite existing demo pages with current content
 //
 // Credentials come from environment variables, never from arguments or files:
 //   ATLASSIAN_EMAIL, ATLASSIAN_API_TOKEN (a classic API token from id.atlassian.com)
@@ -74,23 +75,30 @@ const p = (...content) => ({ type: 'paragraph', content: content.map((c) => (typ
 const h = (level, text) => ({ type: 'heading', attrs: { level }, content: [t(text)] });
 let localIdSeq = 0;
 const lid = () => `nakhla-${Date.now().toString(36)}-${(localIdSeq++).toString(36)}`;
-const decisionList = (titles) => ({
+const dateNode = (ms) => ({ type: 'date', attrs: { timestamp: String(ms) } });
+const decisionList = (items) => ({
   type: 'decisionList',
   attrs: { localId: lid() },
-  content: titles.map((title) => ({ type: 'decisionItem', attrs: { localId: lid(), state: 'DECIDED' }, content: [t(title)] })),
+  content: items.map(({ title, ms }) => ({
+    type: 'decisionItem',
+    attrs: { localId: lid(), state: 'DECIDED' },
+    content: ms ? [t(`${title} — `), dateNode(ms)] : [t(title)],
+  })),
 });
 
+/** Page ADF. Each Decision carries a /date: the page's decidedOn plus 2 days per section. */
 export function pageAdf(page) {
+  const base = page.decidedOn ? Date.parse(`${page.decidedOn}T09:00:00Z`) : null;
   const content = [];
   if (page.intro) content.push(p(page.intro));
-  for (const s of page.sections) {
+  page.sections.forEach((s, i) => {
     content.push(h(2, s.heading));
     if (s.intro) content.push(p(s.intro));
     for (const d of s.decisions) {
-      content.push(decisionList([d.title]));
+      content.push(decisionList([{ title: d.title, ms: base ? base + i * 2 * 86400000 : null }]));
       if (d.because) content.push(p(t('Because: ', [{ type: 'strong' }]), d.because));
     }
-  }
+  });
   return { type: 'doc', version: 1, content };
 }
 
@@ -120,7 +128,19 @@ async function ensurePage(space, page) {
   if (DRY) return log(`[dry] page "${page.title}" (${decisions} decisions, labels: ${page.labels.join(', ')})`);
   const q = new URLSearchParams({ 'space-id': space.id, title: page.title, status: 'current' });
   const found = await http('GET', `/wiki/api/v2/pages?${q}`);
-  if (found.results?.[0]) return log(`✓ page "${page.title}" exists`);
+  if (found.results?.[0]) {
+    if (!args.update) return log(`✓ page "${page.title}" exists`);
+    // --update: publish a new version with the current demo content (Decision Ledger re-captures it).
+    const current = await http('GET', `/wiki/api/v2/pages/${found.results[0].id}`);
+    await http('PUT', `/wiki/api/v2/pages/${current.id}`, {
+      id: current.id,
+      status: 'current',
+      title: page.title,
+      body: { representation: 'atlas_doc_format', value: JSON.stringify(pageAdf(page)) },
+      version: { number: (current.version?.number || 1) + 1, message: 'Decision Ledger demo update' },
+    });
+    return log(`~ page "${page.title}" updated (${decisions} decisions)`);
+  }
   const created = await http('POST', `/wiki/api/v2/pages`, {
     spaceId: space.id,
     status: 'current',

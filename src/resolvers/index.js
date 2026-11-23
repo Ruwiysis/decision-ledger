@@ -36,7 +36,14 @@ resolver.define('listDecisions', async ({ payload = {} }) => {
     let rows;
     if (query) {
       const hits = await decisions.search(query, { limit: 200 });
-      rows = hits.map((h) => ({ ...h.decision, score: h.score, matched: h.matched })).filter((d) => matchesFilters(d, filters));
+      // Hits arrive best-first. Drop weak tail matches (e.g. one word in a rationale) when
+      // there are strong ones, so "payment gateway" doesn't list every page mentioning "payment".
+      const top = hits[0]?.score || 0;
+      const floor = Math.max(2, Math.ceil(top * 0.25));
+      rows = hits
+        .filter((h) => h.score >= floor)
+        .map((h) => ({ ...h.decision, score: h.score, matched: h.matched }))
+        .filter((d) => matchesFilters(d, filters));
     } else {
       rows = await decisions.list({
         status: filters.status,

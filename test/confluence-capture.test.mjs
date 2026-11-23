@@ -36,6 +36,29 @@ test('decisions nested in panels are found, mentions become text, paragraph in p
   assert.equal(sso.heading, 'Security');
 });
 
+test('a /date inside a decision becomes decidedAt and is removed from the title', () => {
+  const ts = String(Date.UTC(2025, 8, 15));
+  const doc = {
+    type: 'doc',
+    content: [
+      {
+        type: 'decisionList',
+        content: [
+          {
+            type: 'decisionItem',
+            attrs: { localId: 'x', state: 'DECIDED' },
+            content: [{ type: 'text', text: 'Stay on PostgreSQL — ' }, { type: 'date', attrs: { timestamp: ts } }],
+          },
+        ],
+      },
+    ],
+  };
+  const [d] = extractDecisions(doc);
+  assert.equal(d.title, 'Stay on PostgreSQL');
+  assert.equal(d.decidedAt, '2025-09-15T00:00:00.000Z');
+  assert.equal(extractDecisions(fixture)[0].decidedAt, null);
+});
+
 test('helpers: adfToText, splitInlineRationale, parseAdf', () => {
   assert.equal(adfToText({ type: 'paragraph', content: [{ type: 'text', text: 'a' }, { type: 'hardBreak' }, { type: 'text', text: 'b' }] }).trim(), 'a\nb');
   assert.deepEqual(splitInlineRationale('Delay launch due to compliance review'), { title: 'Delay launch', rationale: 'compliance review' });

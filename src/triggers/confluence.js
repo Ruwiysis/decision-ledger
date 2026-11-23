@@ -37,7 +37,9 @@ export async function capturePage(page, { spaceKey, store = defaultStore } = {})
       spaceOrProject: spaceKey || null,
       containerId: page.spaceId || null,
       decidedBy,
-      decidedAt,
+      // A /date inside the decision wins; otherwise the page version time (first capture only).
+      decidedAt: d.decidedAt || decidedAt,
+      decidedAtExplicit: !!d.decidedAt,
     });
     saved++;
   }

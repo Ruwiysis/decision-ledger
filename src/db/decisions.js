@@ -92,7 +92,8 @@ export function createDecisionStore({ client = forgeSql, ensureSchema = forgeEns
 
   /**
    * Insert, or update the existing row with the same (sourceType, sourceId, title).
-   * Re-capturing never overwrites status/superseded_by, which users manage in the ledger.
+   * Re-capturing never overwrites status/superseded_by, which users manage in the ledger,
+   * and keeps the first decided_at unless `decidedAtExplicit` (a date written in the source).
    * Returns the stored decision.
    */
   async function upsert(decision) {
@@ -110,6 +111,7 @@ export function createDecisionStore({ client = forgeSql, ensureSchema = forgeEns
          source_url = VALUES(source_url),
          space_or_project = VALUES(space_or_project),
          container_id = VALUES(container_id),
+         decided_at = CASE WHEN ? = 1 THEN VALUES(decided_at) ELSE decided_at END,
          updated_at = CURRENT_TIMESTAMP`,
       [
         title,
@@ -124,6 +126,8 @@ export function createDecisionStore({ client = forgeSql, ensureSchema = forgeEns
         decision.containerId == null ? null : String(decision.containerId),
         decision.decidedBy || null,
         toSqlDateTime(decision.decidedAt),
+        // Only an explicit date from the source (e.g. a Confluence /date) may change decided_at later.
+        decision.decidedAtExplicit ? 1 : 0,
       ]
     );
     return getBySourceKey(decision.sourceType, decision.sourceId, title);

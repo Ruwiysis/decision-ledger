@@ -141,7 +141,7 @@ const App = () => {
                 <Strong>{d.title}</Strong>
                 <Lozenge appearance={(STATUS[d.status] || STATUS.active).appearance}>{(STATUS[d.status] || STATUS.active).text}</Lozenge>
               </Inline>
-              {hasRealRationale(d) && <Text maxLines={3}>{d.rationale}</Text>}
+              {hasRealRationale(d) && <Text maxLines={3}>{d.rationale.charAt(0).toUpperCase() + d.rationale.slice(1)}</Text>}
               <Inline space="space.100" alignBlock="center" shouldWrap>
                 {d.decidedBy && <User accountId={d.decidedBy} />}
                 <Text color="color.text.subtle" size="small">

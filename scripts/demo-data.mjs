@@ -6,13 +6,16 @@ export const SPACE = { key: 'NAKHLA', name: 'Nakhla Pay', description: 'Engineer
 export const PROJECT = { key: 'NP', name: 'Nakhla Pay' };
 
 /**
- * Pages: sections of { heading, intro?, decisions: [{ title, because? }], after? }.
+ * Pages: sections of { heading, intro?, decisions: [{ title, because? }] }.
+ * `decidedOn` is the meeting date; it is written into every Decision as a Confluence /date
+ * (sections a few days apart), which Decision Ledger reads as the decision date.
  * `because` is written as a "Because: …" paragraph after the decision list (one decision
  * per list) — exactly what a person would type in Confluence.
  */
 export const PAGES = [
   {
     title: 'Architecture Review: Reporting & Data Platform',
+    decidedOn: '2025-09-15', // decision date written into each Decision with /date
     labels: ['architecture', 'database', 'reporting'],
     intro: 'Review held with the platform and data teams to settle how reporting and ledger data are stored and served.',
     sections: [
@@ -32,6 +35,7 @@ export const PAGES = [
   },
   {
     title: 'Vendor Selection: Payment Gateway',
+    decidedOn: '2025-07-08', // decision date written into each Decision with /date
     labels: ['vendor', 'payments'],
     intro: 'We compared four gateways on local card support, settlement speed, fees and licensing.',
     sections: [
@@ -51,6 +55,7 @@ export const PAGES = [
   },
   {
     title: 'KYC & Merchant Onboarding Compliance',
+    decidedOn: '2025-08-20', // decision date written into each Decision with /date
     labels: ['compliance', 'kyc', 'security'],
     intro: 'Outcome of the compliance workshop with legal and risk.',
     sections: [
@@ -70,6 +75,7 @@ export const PAGES = [
   },
   {
     title: 'Pricing Committee: Q3 2026',
+    decidedOn: '2026-06-30', // decision date written into each Decision with /date
     labels: ['pricing', 'merchants'],
     intro: 'Pricing for the public launch, agreed by product, finance and sales.',
     sections: [
@@ -89,6 +95,7 @@ export const PAGES = [
   },
   {
     title: 'Hiring Plan 2026',
+    decidedOn: '2026-01-12', // decision date written into each Decision with /date
     labels: ['hiring', 'team'],
     intro: 'Headcount priorities for the next two quarters.',
     sections: [
@@ -108,6 +115,7 @@ export const PAGES = [
   },
   {
     title: 'Security Review: Access & Secrets',
+    decidedOn: '2026-02-03', // decision date written into each Decision with /date
     labels: ['security'],
     intro: 'Annual access review with the security lead.',
     sections: [
@@ -127,6 +135,7 @@ export const PAGES = [
   },
   {
     title: 'Mobile App Architecture',
+    decidedOn: '2025-11-04', // decision date written into each Decision with /date
     labels: ['mobile', 'architecture'],
     intro: 'Choices for the merchant point-of-sale app.',
     sections: [
@@ -142,6 +151,7 @@ export const PAGES = [
   },
   {
     title: 'Infrastructure & Hosting',
+    decidedOn: '2025-06-10', // decision date written into each Decision with /date
     labels: ['infrastructure', 'architecture'],
     intro: 'Hosting standards for production.',
     sections: [
@@ -161,6 +171,7 @@ export const PAGES = [
   },
   {
     title: 'Merchant Support Operations',
+    decidedOn: '2026-04-22', // decision date written into each Decision with /date
     labels: ['support', 'merchants'],
     intro: 'How we support merchants after launch.',
     sections: [

@@ -17,10 +17,11 @@ function fakeSql() {
     const q = match(query);
     calls.push({ q, params });
     if (q.startsWith('INSERT INTO decisions')) {
-      const [title, tkey, rationale, status, topics, stype, sid, surl, sop, cid, by, at] = params;
+      const [title, tkey, rationale, status, topics, stype, sid, surl, sop, cid, by, at, explicit] = params;
       const existing = rows.find((r) => r.source_type === stype && r.source_id === sid && r.title_key === tkey);
       if (existing) {
         Object.assign(existing, { title, rationale, topics, source_url: surl, space_or_project: sop, container_id: cid });
+        if (explicit === 1) existing.decided_at = at;
         return { rows: { affectedRows: 2, insertId: 0 } };
       }
       const row = {
@@ -126,6 +127,15 @@ test('upsert keeps user-managed status on re-capture', async () => {
   const recaptured = await store.upsert({ ...pgDecision, rationale: 'edited' });
   assert.equal(recaptured.status, 'superseded');
   assert.equal(recaptured.supersededBy, 7);
+});
+
+test('upsert keeps the first decided_at unless the source gives an explicit date', async () => {
+  const { store } = newStore();
+  await store.upsert(pgDecision);
+  const later = await store.upsert({ ...pgDecision, decidedAt: '2026-11-01T00:00:00.000Z' });
+  assert.equal(later.decidedAt, '2026-03-10T09:30:00.000Z');
+  const explicit = await store.upsert({ ...pgDecision, decidedAt: '2025-09-15T00:00:00.000Z', decidedAtExplicit: true });
+  assert.equal(explicit.decidedAt, '2025-09-15T00:00:00.000Z');
 });
 
 test('upsert validates required fields', async () => {

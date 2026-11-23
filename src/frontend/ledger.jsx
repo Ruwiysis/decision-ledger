@@ -56,6 +56,9 @@ const formatDate = (iso) =>
 
 const truncate = (s, n) => (s && s.length > n ? `${s.slice(0, n - 1)}…` : s || '');
 
+// Rationales are often captured mid-sentence ("Because: the team…"): capitalise for display.
+const cap = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
+
 const StatusLozenge = ({ status }) => {
   const s = STATUS_LOZENGE[status] || STATUS_LOZENGE.active;
   return <Lozenge appearance={s.appearance}>{s.text}</Lozenge>;
@@ -110,7 +113,7 @@ const DecisionModal = ({ decision, allDecisions, onClose, onChanged }) => {
             <Heading as="h3" size="xsmall">
               Why
             </Heading>
-            <Text>{decision.rationale || 'No rationale was recorded with this decision.'}</Text>
+            <Text>{cap(decision.rationale) || 'No rationale was recorded with this decision.'}</Text>
           </Stack>
           {decision.decidedBy && (
             <Stack space="space.050">
@@ -259,7 +262,7 @@ const App = () => {
           </Button>
         ),
       },
-      { key: 'why', content: <Text maxLines={2}>{d.rationale || '—'}</Text> },
+      { key: 'why', content: <Text maxLines={2}>{cap(d.rationale) || '—'}</Text> },
       { key: d.status, content: <StatusLozenge status={d.status} /> },
       { key: 'by', content: d.decidedBy ? <User accountId={d.decidedBy} /> : <Text>—</Text> },
       { key: d.decidedAt || '', content: <Text>{formatDate(d.decidedAt)}</Text> },
@@ -371,18 +374,20 @@ const App = () => {
             {!loading && rows.length > 0 && (
               <Text color="color.text.subtle">
                 {rows.length} decision{rows.length === 1 ? '' : 's'}
-                {submitted ? ` matching “${submitted}”` : ''}
+                {submitted ? ` matching “${submitted}”, best match first` : ''}
               </Text>
             )}
+            {/* Search results keep the server's relevance order; plain listings sort by date.
+                The key remounts the table so a previous column sort doesn't override relevance. */}
             <DynamicTable
+              key={submitted ? `search-${submitted}` : 'list'}
               label="Decisions"
               head={head}
               rows={tableRows}
               rowsPerPage={10}
               isLoading={loading}
               emptyView={emptyView}
-              defaultSortKey="date"
-              defaultSortOrder="DESC"
+              {...(submitted ? {} : { defaultSortKey: 'date', defaultSortOrder: 'DESC' })}
             />
           </Stack>
         )}
