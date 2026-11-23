@@ -183,6 +183,8 @@ permissions:
     - read:page:confluence
     - read:confluence-content.summary
     - read:jira-user
+    - read:graph:page:confluence
+    - read:graph:user:atlassian
 
 app:
   runtime:

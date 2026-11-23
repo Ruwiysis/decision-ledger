@@ -3,6 +3,7 @@ import api from '@forge/api';
 import { decisions, STATUSES } from '../db/decisions.js';
 import { filterVisible, canSee } from '../access.js';
 import { checkText, fetchIssue, issueText } from '../guard.js';
+import { CONNECTED_WORK_QUERY, confluencePageAri, parseConnectedWork } from '../lib/twg.js';
 
 // Backend for both UI modules (Confluence ledger page + Jira issue panel).
 // Every response is filtered by what the *calling user* can access (see access.js);
@@ -85,6 +86,35 @@ resolver.define('getDecision', async ({ payload = {} }) => {
   } catch (err) {
     console.error(`[ledger] getDecision failed: ${err?.message}`);
     return fail('Could not load this decision.');
+  }
+});
+
+/**
+ * Teamwork Graph "Connected work" for a decision's source page: who contributed and which
+ * pages it links to. Runs AS THE USER (Teamwork Graph never runs as the app), so results are
+ * already permission-filtered. Never throws to the UI: returns ok / empty / unavailable.
+ */
+resolver.define('connectedWork', async ({ payload = {}, context }) => {
+  try {
+    const d = await decisions.getById(payload.id);
+    if (!d || !(await canSee(d))) return fail('Decision not found.');
+    if (d.sourceType !== 'confluence') return ok({ status: 'unsupported', people: [], pages: [] });
+    const ari = confluencePageAri(context?.cloudId, d.sourceId);
+    if (!ari) return ok({ status: 'unsupported', people: [], pages: [] });
+
+    const res = await api.asUser().requestTeamworkGraph(CONNECTED_WORK_QUERY, { id: ari });
+    const body = await res.json().catch(() => null);
+    if (!res.ok && !body?.data) {
+      console.warn(`[twg] connectedWork ${d.id} HTTP ${res.status}`);
+      return ok({ status: 'unavailable', people: [], pages: [] });
+    }
+    const parsed = parseConnectedWork(body, { excludeAccountIds: [d.decidedBy] });
+    if (parsed.errors.length) console.warn(`[twg] connectedWork ${d.id} errors: ${parsed.errors.slice(0, 3).join(' | ')}`);
+    console.log(`[twg] connectedWork ${d.id} status=${parsed.status} people=${parsed.people.length} pages=${parsed.pages.length}`);
+    return ok({ status: parsed.status === 'error' ? 'unavailable' : parsed.status, people: parsed.people, pages: parsed.pages });
+  } catch (err) {
+    console.error(`[twg] connectedWork failed: ${err?.message}`);
+    return ok({ status: 'unavailable', people: [], pages: [] });
   }
 });
 

@@ -90,7 +90,11 @@
 - [x] 3.4 MCP deploy + Sprint Planner agent — built in Rovo Studio (agent picker → Browse agents → Create agent); reviewed NP-1..4: 3 Conflicts + NP-4 Related, each cited, with 'Before the sprint starts' actions
   - Sprint Planner setup + instructions: `agent/sprint-planner-instructions.md`
   - Optional: external MCP (admin.atlassian.com → Apps → Sites → Connected apps → enable tools) → `https://mcp.atlassian.com/forge/7674119a-33d5-4976-bc59-5f8955c6e895` from Claude Code
-- [ ] 3.5 STRETCH: Teamwork Graph "Connected work"
+- [ ] 3.5 STRETCH: Teamwork Graph "Connected work" — built + deployed v5.0.0, awaiting live check (time box: half a day from 2026-11-23)
+  - Curated queries (no registration): `confluencePageContributors` + `confluencePageLinkedConfluencePages` on the decision's source page (ARI `ari:cloud:confluence:<cloudId>:page/<id>`), via `api.asUser().requestTeamworkGraph` in resolver `connectedWork`
+  - Scopes `read:graph:page:confluence`, `read:graph:user:atlassian` (major v5)
+  - Handles ok / empty (incl. ungranted scope) / unavailable (HTTP-200 errors) / unsupported (non-Confluence decisions); modal section loads independently
+  - `src/lib/twg.js` + tests (66/66)
 
 ### Phase 4 — Polish & submission (Dec 18–22)
 - [ ] 4.1 Security + app review, states, 2nd-user access test, production deploy

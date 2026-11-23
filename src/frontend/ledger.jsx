@@ -9,6 +9,7 @@ import ForgeReconciler, {
   Heading,
   Inline,
   Label,
+  Link,
   LinkButton,
   Lozenge,
   Modal,
@@ -62,6 +63,73 @@ const cap = (s) => (s ? s.charAt(0).toUpperCase() + s.slice(1) : s);
 const StatusLozenge = ({ status }) => {
   const s = STATUS_LOZENGE[status] || STATUS_LOZENGE.active;
   return <Lozenge appearance={s.appearance}>{s.text}</Lozenge>;
+};
+
+/**
+ * "Connected work" from Teamwork Graph: people who contributed to the decision's page and
+ * pages it links to. Loads independently so the modal never waits on it or breaks because of it.
+ */
+const ConnectedWork = ({ decision }) => {
+  const [state, setState] = useState({ loading: true });
+
+  useEffect(() => {
+    let alive = true;
+    setState({ loading: true });
+    invoke('connectedWork', { id: decision.id })
+      .then((res) => alive && setState({ loading: false, ...(res?.ok ? res : { status: 'unavailable' }) }))
+      .catch(() => alive && setState({ loading: false, status: 'unavailable' }));
+    return () => {
+      alive = false;
+    };
+  }, [decision.id]);
+
+  if (state.status === 'unsupported') return null;
+
+  return (
+    <Stack space="space.075">
+      <Inline space="space.100" alignBlock="center">
+        <Heading as="h3" size="xsmall">
+          Connected work
+        </Heading>
+        <Lozenge appearance="new">Teamwork Graph</Lozenge>
+      </Inline>
+      {state.loading && <Spinner size="small" label="Loading connected work" />}
+      {!state.loading && state.status === 'unavailable' && (
+        <Text color="color.text.subtle">Connected work isn't available right now.</Text>
+      )}
+      {!state.loading && state.status === 'empty' && (
+        <Text color="color.text.subtle">No other contributors or linked pages found for this decision's page.</Text>
+      )}
+      {!state.loading && state.status === 'ok' && (
+        <Stack space="space.100">
+          {(state.people || []).length > 0 && (
+            <Stack space="space.050">
+              <Text size="small" color="color.text.subtle">
+                People who shaped the page
+              </Text>
+              <Inline space="space.100" shouldWrap>
+                {(state.people || []).map((p) => (
+                  <User key={p.accountId} accountId={p.accountId} />
+                ))}
+              </Inline>
+            </Stack>
+          )}
+          {(state.pages || []).length > 0 && (
+            <Stack space="space.050">
+              <Text size="small" color="color.text.subtle">
+                Linked pages
+              </Text>
+              {(state.pages || []).map((p) => (
+                <Link key={p.url} href={p.url} openNewTab>
+                  {p.title}
+                </Link>
+              ))}
+            </Stack>
+          )}
+        </Stack>
+      )}
+    </Stack>
+  );
 };
 
 const DecisionModal = ({ decision, allDecisions, onClose, onChanged }) => {
@@ -135,6 +203,7 @@ const DecisionModal = ({ decision, allDecisions, onClose, onChanged }) => {
               </TagGroup>
             </Stack>
           )}
+          <ConnectedWork decision={decision} />
           {decision.status === 'superseded' && supersededByTitle && (
             <SectionMessage appearance="information" title="Superseded">
               <Text>
