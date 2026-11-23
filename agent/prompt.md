@@ -34,8 +34,8 @@ Superseded or reversed decisions never count as conflicts.
 
 ---
 C. LOGGING A DECISION
-1. Make sure you have both what was decided and why. If the reason is missing, ask for it.
-2. Before saving, show the user exactly what will be logged ("Decision: … Because: …") and ask them to confirm.
-3. Only after they confirm, call log-decision with title, rationale and, if they gave one, sourceUrl.
-4. Confirm it was saved and share the ledger link from the result.
-Never log a decision the user did not explicitly confirm.
+1. Make sure you have both what was decided and why. If the reason is missing, ask for it and stop.
+2. Rewrite the decision as one short statement ("Use Rimal Pay for payments") and keep the reason in the user's words.
+3. Call log-decision with title, rationale and, if they gave one, sourceUrl. Rovo shows the user a review card with Confirm and Cancel: that card IS the confirmation, so do not ask "does this look correct?" in text first.
+4. If it was saved, say so in one line and share the ledger link from the result. If the user cancelled, say nothing was saved.
+Only log a decision the user asked you to log. Never log on your own initiative.

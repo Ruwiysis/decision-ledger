@@ -82,9 +82,11 @@
   - `src/actions/index.js`: identity only from `context.principal.accountId`; all reads filtered as the user; compact JSON replies; errors returned as JSON (agent explains)
   - search-decisions (top 5 visible), get-decision (+ supersededBy), check-conflicts (key / URL / "Does NP-1…" / free text / Rovo context key; returns relevance, matchedWords, changeWords, conflictSignal), log-decision (validated, https-only sourceUrl, defaults to current work item URL, dedup by title, decided_by = caller, returns ledger link via getAppContext)
   - `src/lib/actions.js` pure helpers + tests (62/62)
-- [ ] 3.2 `agent/prompt.md` + 4 Rovo chat tests — prompt written + deployed, awaiting user tests
+- [ ] 3.2 `agent/prompt.md` + 4 Rovo chat tests — round 1: T1 ✅ T2 ✅ T4 ✅, T3 saved (id 60005) but double confirmation → prompt tuned, awaiting T3 retest
+  - Rovo shows its own review card (Confirm/Cancel) for CREATE actions → prompt now relies on it instead of a text "does this look correct?"
   - Prompt: always call tools, cite decision/date/decider/link, plain "not found" + offer to log, verdict Conflicts / Related, no conflict / Unclear + one sentence, confirm before logging, <120 words, "work item"/"space" terms
-- [ ] 3.3 `skills/decision-guard/SKILL.md` wired to agent
+- [ ] 3.3 `skills/decision-guard/SKILL.md` wired to agent — written (102 lines), lint clean, deployed; wired via agent `skills:` + `dependencies.tools`
+  - When to use, tool field table, verdict rules (superseded never conflicts, shared words ≠ conflict), answer formats (single + sprint table), errors/edge cases
 - [ ] 3.4 MCP deploy + Sprint Planner agent
 - [ ] 3.5 STRETCH: Teamwork Graph "Connected work"
 
@@ -115,4 +117,5 @@
 - 2026-11-23: A web trigger costs the RoA trust signal (major version). Only use temporarily in dev; never ship one.
 - 2026-11-23: **Auto-comment privacy rule:** a Jira comment is visible to everyone on the work item, so it only quotes decisions from the same Jira space or Rovo; Confluence-sourced conflicts get a neutral pointer to the (permission-filtered) panel.
 - 2026-11-23: setStatus allowed for anyone who can see the decision (logged with accountId).
+- 2026-11-23: "Confirm before logging" is satisfied by Rovo's built-in review card for CREATE actions; agent no longer asks a second time in text.
 - 2026-11-23: Forge CLI auth via keychain (`forge login`) instead of env vars, for simplicity.
