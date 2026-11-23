@@ -9,3 +9,7 @@ coverage/
 PLAN.md
 CLAUDE_CODE_PROMPT.md
 security-audit-artifacts/
+
+# Internal working notes (kept local, not published)
+PROGRESS.md
+notes/
