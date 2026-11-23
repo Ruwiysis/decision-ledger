@@ -5,8 +5,8 @@
 **Deadline:** submit by Dec 22, 2026, 10:00 Riyadh (hard deadline 23:00 Riyadh / 12:00 PST).
 
 ## Status
-- **Current step:** 2.1 — database layer
-- **Next:** 2.2 — Confluence capture trigger
+- **Current step:** 2.2 — Confluence capture trigger
+- **Next:** 2.3 — Jira comment capture
 
 ## Checklist
 
@@ -42,7 +42,12 @@
 - [x] 1.4 USER confirmed: Jira panel, Confluence ledger page and Decision Keeper agent all render
 
 ### Phase 2 — Core features (Dec 6–13)
-- [ ] 2.1 DB migrations + `src/db/decisions.js` + unit tests
+- [x] 2.1 DB migrations + `src/db/decisions.js` + unit tests
+  - `src/db/migrations.js`: `v001_create_decisions` (unique key on source_type+source_id+title_key, indexes on status/container/date). `ensureSchema()` runs lazily on first DB use + hourly scheduled trigger
+  - `src/db/decisions.js`: `createDecisionStore({client, ensureSchema})` → upsert (never overwrites status), removeStaleForSource, search (SQL LIKE candidates → JS ranking), list (filters), listContainers, getById, setStatus
+  - `src/lib/keywords.js`: extractKeywords (stopwords, aliases e.g. postgres→postgresql, plural stemming), scoreDecision (title 3 / topics 2 / rationale 1), rankDecisions, titleKey
+  - Tests: `npm test` (node:test, fake SQL client) — 16/16 pass
+  - Verified on real Forge SQL via a temporary token-protected web trigger (11/11 steps OK), then removed it (URL, module, code, secret) → v3.1.0, RoA-eligible again
 - [ ] 2.2 Confluence capture trigger + ADF fixture tests
 - [ ] 2.3 Jira comment capture trigger
 - [ ] 2.4 Ledger page UI
@@ -76,4 +81,7 @@
 - 2026-11-23: Ignoring template AGENTS.md persona/pun instructions; keeping its technical guidance.
 - 2026-11-23: **No Marketplace listing; Marketplace bonus dropped.** Single app shared via installation link for judges. Removed from cut order and submission text. (Reasons: multi-app apps can only be listed paid; submitted apps can't use install links.)
 - 2026-11-23: **UI copy uses current Jira terms:** "work item" (not issue) and "space" (not project) in all user-facing text, agent prompt, skill, video and submission. Code/API names (issue, project) unchanged.
+- 2026-11-23: Relative imports use explicit `.js` extensions so Node's ESM test runner can load `src/` directly (webpack is fine with it).
+- 2026-11-23: Authorization lives in callers (resolvers/actions), not the DB layer; DB stores `space_or_project` + `container_id` for access checks.
+- 2026-11-23: A web trigger costs the RoA trust signal (major version). Only use temporarily in dev; never ship one.
 - 2026-11-23: Forge CLI auth via keychain (`forge login`) instead of env vars, for simplicity.
