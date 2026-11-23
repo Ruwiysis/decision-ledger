@@ -1,6 +1,8 @@
 import Resolver from '@forge/resolver';
+import api from '@forge/api';
 import { decisions, STATUSES } from '../db/decisions.js';
 import { filterVisible, canSee } from '../access.js';
+import { checkText, fetchIssue, issueText } from '../guard.js';
 
 // Backend for both UI modules (Confluence ledger page + Jira issue panel).
 // Every response is filtered by what the *calling user* can access (see access.js);
@@ -103,8 +105,29 @@ resolver.define('setStatus', async ({ payload = {}, context }) => {
   }
 });
 
-// Guard panel (built at step 2.5).
-resolver.define('relatedDecisions', async () => ok({ related: [], conflict: null }));
+/**
+ * Guard panel. The work item comes from the Forge context (not the payload) and is read
+ * AS THE USER, and candidate decisions are filtered to what that user can see.
+ */
+resolver.define('relatedDecisions', async ({ context }) => {
+  const issueKey = context?.extension?.issue?.key;
+  if (!issueKey) return fail('Open this panel on a work item.');
+  try {
+    const issue = await fetchIssue(issueKey, api.asUser());
+    if (!issue) return fail('This work item could not be read.');
+    const { related, keywords } = await checkText(issueText(issue), { visible: (list) => filterVisible(list), limit: 3 });
+    const conflict = related.find((r) => r.conflict) || null;
+    return ok({
+      issueKey,
+      keywords: keywords.slice(0, 10),
+      related: related.map((r) => ({ ...r.decision, score: r.score, matched: r.matched, conflict: r.conflict, changeWords: r.changeWords })),
+      conflictId: conflict ? conflict.decision.id : null,
+    });
+  } catch (err) {
+    console.error(`[guard] panel ${issueKey} failed: ${err?.message}`);
+    return fail('Could not check related decisions. Please try again.');
+  }
+});
 
 export const handler = resolver.getDefinitions();
 export { handler as resolver };

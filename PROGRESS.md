@@ -5,7 +5,7 @@
 **Deadline:** submit by Dec 22, 2026, 10:00 Riyadh (hard deadline 23:00 Riyadh / 12:00 PST).
 
 ## Status
-- **Current step:** 2.4 — USER checks ledger page
+- **Current step:** 2.5 — USER live test of guard
 - **Next:** 2.5 — Guard panel + issue-created trigger + Ask Decision Keeper
 
 ## Checklist
@@ -56,12 +56,17 @@
   - `src/lib/comments.js` parseDecisionComment: must start with "Decision:"; rationale after "Because:" else next line(s) else inline "because"
   - `src/triggers/jira.js` captureComment: source = comment id (edits update, un-decision edits delete), skips restricted comments, link `/browse/KEY?focusedCommentId=`
   - Tests: 36/36 pass. Deployed v3.2.0
-- [ ] 2.4 Ledger page UI — built + deployed v3.3.0, awaiting user browser check
+- [x] 2.4 Ledger page UI — user verified; cross-product asUser Jira check from Confluence works
   - `src/access.js`: filterVisible() as the user — Confluence `GET /wiki/api/v2/pages?id=…` (page-level, respects restrictions), Jira `GET /rest/api/3/project/search?id=…` (Browse projects). Fail closed. Rovo decisions visible to all
   - Resolvers: listDecisions (search or filtered list), listFilters, getDecision, setStatus (must see decision + replacement; logs accountId)
   - UI: search + status/space/date filters, DynamicTable (Decision button → modal, Why, Status lozenge, User, Date, Source link), modal w/ topics, Superseded-by select, Mark superseded / active again, Open source; loading, empty (2 variants), error+retry
   - Tests: 41/41
-- [ ] 2.5 Guard panel + issue-created trigger + Ask Decision Keeper
+- [ ] 2.5 Guard panel + issue-created trigger + Ask Decision Keeper — built + deployed v3.4.0, awaiting live test
+  - `src/lib/conflict.js`: change phrases (migrate/replace/switch to/drop/move away from/…) within 8 words of a matched keyword of an ACTIVE decision → conflict; PANEL_MIN_SCORE 3, AUTO_COMMENT_MIN_SCORE 7
+  - `src/guard.js`: issueText, fetchIssue, checkText (shared with check-conflicts action later)
+  - Panel resolver reads issue key from context, fetches issue asUser, filters visible; UI: warning SectionMessage + View discussion + Ask Decision Keeper (`rovo.open`, appearance=rovo), top 3 cards, empty/error/loading
+  - Trigger: fetch as app, one comment max via `guard_comments` table (migration v002, claim → post → record / release on failure)
+  - Tests: 52/52
 - [ ] 2.6 Demo data script (Nakhla Pay), idempotent
 - [ ] 2.7 USER: end-to-end browser test
 
@@ -82,7 +87,6 @@
 
 ## Known issues
 - Jira access check is project-level (Browse projects); issue-level security schemes not yet honoured. Revisit at 4.1.
-- Unverified: whether a Confluence-module resolver can call `requestJira` asUser (cross-product). If it fails, Jira decisions are hidden on the ledger (fail closed) — check `[access]` warnings in logs.
 - 2.6 demo data script calls Jira/Confluence REST APIs; the Forge-scoped token likely can't. Plan: user creates a second token with Jira+Confluence scopes (or classic token) stored in env vars.
 
 ## Decisions made
@@ -96,4 +100,6 @@
 - 2026-11-23: Relative imports use explicit `.js` extensions so Node's ESM test runner can load `src/` directly (webpack is fine with it).
 - 2026-11-23: Authorization lives in callers (resolvers/actions), not the DB layer; DB stores `space_or_project` + `container_id` for access checks.
 - 2026-11-23: A web trigger costs the RoA trust signal (major version). Only use temporarily in dev; never ship one.
+- 2026-11-23: **Auto-comment privacy rule:** a Jira comment is visible to everyone on the work item, so it only quotes decisions from the same Jira space or Rovo; Confluence-sourced conflicts get a neutral pointer to the (permission-filtered) panel.
+- 2026-11-23: setStatus allowed for anyone who can see the decision (logged with accountId).
 - 2026-11-23: Forge CLI auth via keychain (`forge login`) instead of env vars, for simplicity.

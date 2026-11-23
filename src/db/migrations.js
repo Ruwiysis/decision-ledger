@@ -26,8 +26,19 @@ const CREATE_DECISIONS = `CREATE TABLE IF NOT EXISTS decisions (
   KEY idx_decision_date (decided_at)
 )`;
 
+// One row per work item that received an automatic conflict comment (at most one each).
+const CREATE_GUARD_COMMENTS = `CREATE TABLE IF NOT EXISTS guard_comments (
+  issue_id VARCHAR(32) NOT NULL PRIMARY KEY,
+  issue_key VARCHAR(64) NOT NULL,
+  decision_id BIGINT NOT NULL,
+  comment_id VARCHAR(32),
+  created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+)`;
+
 // The single migrationRunner chain for the whole app (Forge recommends exactly one).
-const migrations = migrationRunner.enqueue('v001_create_decisions', CREATE_DECISIONS);
+const migrations = migrationRunner
+  .enqueue('v001_create_decisions', CREATE_DECISIONS)
+  .enqueue('v002_create_guard_comments', CREATE_GUARD_COMMENTS);
 
 let ready = null;
 

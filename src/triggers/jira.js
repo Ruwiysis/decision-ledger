@@ -1,8 +1,11 @@
 import api, { route } from '@forge/api';
 import { decisions as defaultStore } from '../db/decisions.js';
+import { guardComments as defaultGuard } from '../db/guard.js';
 import { adfToLines, parseAdf } from '../lib/adf.js';
 import { parseDecisionComment } from '../lib/comments.js';
 import { extractKeywords } from '../lib/keywords.js';
+import { AUTO_COMMENT_MIN_SCORE, conflictSentence } from '../lib/conflict.js';
+import { checkText, fetchIssue, issueText } from '../guard.js';
 
 /** "https://site.atlassian.net/rest/api/3/project/10000" -> "https://site.atlassian.net". */
 export function siteFromSelf(self) {
@@ -84,7 +87,88 @@ export async function onJiraComment(event) {
   }
 }
 
-// New Jira work item -> conflict check, comment once if score is high (step 2.5).
+const text = (t, marks) => ({ type: 'text', text: t, ...(marks ? { marks } : {}) });
+const link = (t, href) => text(t, [{ type: 'link', attrs: { href } }]);
+
+/**
+ * Build the one-time conflict comment (ADF).
+ * Privacy: a comment is visible to everyone who can see the work item, so decision details
+ * are only quoted when they come from the same Jira space or from Rovo chat. Decisions from
+ * Confluence (which may be restricted) get a neutral pointer to the permission-aware panel.
+ */
+export function buildConflictComment({ issueKey, projectId, hit }) {
+  const d = hit.decision;
+  const safeToQuote = d.sourceType === 'rovo' || (d.sourceType === 'jira' && String(d.containerId) === String(projectId));
+  const content = [
+    {
+      type: 'paragraph',
+      content: [text('⚠️ Decision Ledger: ', [{ type: 'strong' }]), text('this work item may go against a past team decision.')],
+    },
+  ];
+  if (safeToQuote) {
+    const p = { type: 'paragraph', content: [text(conflictSentence(d))] };
+    if (d.sourceUrl) p.content.push(text(' '), link('View discussion', d.sourceUrl));
+    content.push(p);
+  } else {
+    content.push({
+      type: 'paragraph',
+      content: [text('The related decision was recorded in Confluence. Open the “Related decisions” panel on this work item to review it (you will only see decisions you have access to).')],
+    });
+  }
+  content.push({
+    type: 'paragraph',
+    content: [text(`Not sure? Ask Decision Keeper in Rovo: “Does ${issueKey} go against any past decision?”`, [{ type: 'em' }])],
+  });
+  return { type: 'doc', version: 1, content };
+}
+
+/**
+ * avi:jira:created:issue -> run the guard; if the best conflict is strong, post ONE comment.
+ * Pure apart from injected dependencies (tested with fakes).
+ */
+export async function guardNewIssue(event, deps = {}) {
+  const {
+    requester = api.asApp(),
+    store = defaultStore,
+    guard = defaultGuard,
+    minScore = AUTO_COMMENT_MIN_SCORE,
+  } = deps;
+  const key = event?.issue?.key;
+  const id = event?.issue?.id;
+  if (!key || !id) return { skipped: 'bad event' };
+
+  const issue = await fetchIssue(key, requester);
+  if (!issue) return { skipped: 'issue not found' };
+  const projectId = issue.fields?.project?.id || event.issue.fields?.project?.id;
+  const { related } = await checkText(issueText(issue), { store, limit: 3 });
+  const best = related.find((r) => r.conflict);
+  if (!best || best.conflictScore < minScore) {
+    return { commented: false, best: best ? { id: best.decision.id, conflictScore: best.conflictScore } : null };
+  }
+
+  if (!(await guard.claim(id, key, best.decision.id))) return { commented: false, skipped: 'already commented' };
+  try {
+    const res = await requester.requestJira(route`/rest/api/3/issue/${key}/comment`, {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ body: buildConflictComment({ issueKey: key, projectId, hit: best }) }),
+    });
+    if (!res.ok) throw new Error(`POST comment failed: ${res.status}`);
+    const comment = await res.json();
+    await guard.recordComment(id, comment.id);
+    return { commented: true, decisionId: best.decision.id, conflictScore: best.conflictScore, commentId: comment.id };
+  } catch (err) {
+    await guard.release(id).catch(() => {});
+    throw err;
+  }
+}
+
+/** Trigger: avi:jira:created:issue. */
 export async function onJiraIssueCreated(event) {
-  console.log(`[guard] jira issue created ${event?.issue?.key}`);
+  try {
+    const result = await guardNewIssue(event);
+    console.log(`[guard] created ${event?.issue?.key} ${JSON.stringify(result)}`);
+  } catch (err) {
+    console.error(`[guard] created ${event?.issue?.key} failed: ${err?.message}`);
+  }
 }
