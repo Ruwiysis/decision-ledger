@@ -47,6 +47,7 @@ resolver.define('listDecisions', async ({ payload = {} }) => {
       });
     }
     const visible = await filterVisible(rows);
+    console.log(`[ledger] list query=${query ? 'yes' : 'no'} found=${rows.length} visible=${visible.length}`);
     return ok({ decisions: visible, total: visible.length });
   } catch (err) {
     console.error(`[ledger] listDecisions failed: ${err?.message}`);

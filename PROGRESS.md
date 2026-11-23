@@ -89,6 +89,7 @@
 - [ ] 4.6 USER: submit on Devpost, check links logged out
 
 ## Known issues
+- Browsers can cache an old UI Kit bundle after deploys → tell testers/judges to hard refresh (Ctrl+Shift+R). Ledger logs `[ledger] list found=N visible=M` for diagnosis.
 - Jira access check is project-level (Browse projects); issue-level security schemes not yet honoured. Revisit at 4.1.
 - Trashed/deleted Confluence pages don't remove their decisions yet (no trashed-page trigger). Add `avi:confluence:trashed:page` in 4.1.
 - Leftover test data: "Capture test" page (personal space), MC-42 comment decision, MC-62. Clean up before recording.
