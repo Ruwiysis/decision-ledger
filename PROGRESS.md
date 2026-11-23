@@ -5,8 +5,8 @@
 **Deadline:** submit by Dec 22, 2026, 10:00 Riyadh (hard deadline 23:00 Riyadh / 12:00 PST).
 
 ## Status
-- **Current step:** 2.2 + 2.3 — USER live test (page with /decision, Jira comment)
-- **Next:** 2.4 — Ledger page UI
+- **Current step:** 2.4 — USER checks ledger page
+- **Next:** 2.5 — Guard panel + issue-created trigger + Ask Decision Keeper
 
 ## Checklist
 
@@ -48,15 +48,19 @@
   - `src/lib/keywords.js`: extractKeywords (stopwords, aliases e.g. postgres→postgresql, plural stemming), scoreDecision (title 3 / topics 2 / rationale 1), rankDecisions, titleKey
   - Tests: `npm test` (node:test, fake SQL client) — 16/16 pass
   - Verified on real Forge SQL via a temporary token-protected web trigger (11/11 steps OK), then removed it (URL, module, code, secret) → v3.1.0, RoA-eligible again
-- [ ] 2.2 Confluence capture trigger + ADF fixture tests — code + tests done, awaiting live test
+- [x] 2.2 Confluence capture trigger + ADF fixture tests — live OK (page 4096344: 2 decisions saved)
   - `src/lib/adf.js`: extractDecisions (DECIDED only, recurses into panels/layouts), rationale = inline "because…" → next paragraph ("Because:" stripped) → "Section: <heading>"; adfToText/adfToLines
   - `src/triggers/confluence.js`: fetch v2 page as app (`body-format=atlas_doc_format&include-labels=true`), upsert per decision, prune removed ones; topics = labels + title/heading keywords; logs node types if 0 found
   - Fixture `test/fixtures/architecture-review.adf.json`
-- [ ] 2.3 Jira comment capture trigger — code + tests done, awaiting live test
+- [x] 2.3 Jira comment capture trigger — live OK (MC-42 comment: 1 decision saved)
   - `src/lib/comments.js` parseDecisionComment: must start with "Decision:"; rationale after "Because:" else next line(s) else inline "because"
   - `src/triggers/jira.js` captureComment: source = comment id (edits update, un-decision edits delete), skips restricted comments, link `/browse/KEY?focusedCommentId=`
   - Tests: 36/36 pass. Deployed v3.2.0
-- [ ] 2.4 Ledger page UI
+- [ ] 2.4 Ledger page UI — built + deployed v3.3.0, awaiting user browser check
+  - `src/access.js`: filterVisible() as the user — Confluence `GET /wiki/api/v2/pages?id=…` (page-level, respects restrictions), Jira `GET /rest/api/3/project/search?id=…` (Browse projects). Fail closed. Rovo decisions visible to all
+  - Resolvers: listDecisions (search or filtered list), listFilters, getDecision, setStatus (must see decision + replacement; logs accountId)
+  - UI: search + status/space/date filters, DynamicTable (Decision button → modal, Why, Status lozenge, User, Date, Source link), modal w/ topics, Superseded-by select, Mark superseded / active again, Open source; loading, empty (2 variants), error+retry
+  - Tests: 41/41
 - [ ] 2.5 Guard panel + issue-created trigger + Ask Decision Keeper
 - [ ] 2.6 Demo data script (Nakhla Pay), idempotent
 - [ ] 2.7 USER: end-to-end browser test
@@ -77,6 +81,8 @@
 - [ ] 4.6 USER: submit on Devpost, check links logged out
 
 ## Known issues
+- Jira access check is project-level (Browse projects); issue-level security schemes not yet honoured. Revisit at 4.1.
+- Unverified: whether a Confluence-module resolver can call `requestJira` asUser (cross-product). If it fails, Jira decisions are hidden on the ledger (fail closed) — check `[access]` warnings in logs.
 - 2.6 demo data script calls Jira/Confluence REST APIs; the Forge-scoped token likely can't. Plan: user creates a second token with Jira+Confluence scopes (or classic token) stored in env vars.
 
 ## Decisions made
