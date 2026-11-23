@@ -5,8 +5,8 @@
 **Deadline:** submit by Dec 22, 2026, 10:00 Riyadh (hard deadline 23:00 Riyadh / 12:00 PST).
 
 ## Status
-- **Current step:** 3.2 — USER runs 4 Rovo chat tests
-- **Next:** 3.3 — decision-guard skill
+- **Current step:** 3.4 — USER builds Sprint Planner in Rovo Studio
+- **Next:** 3.5 — STRETCH Teamwork Graph (only if time) → else Phase 4
 
 ## Checklist
 
@@ -82,12 +82,14 @@
   - `src/actions/index.js`: identity only from `context.principal.accountId`; all reads filtered as the user; compact JSON replies; errors returned as JSON (agent explains)
   - search-decisions (top 5 visible), get-decision (+ supersededBy), check-conflicts (key / URL / "Does NP-1…" / free text / Rovo context key; returns relevance, matchedWords, changeWords, conflictSignal), log-decision (validated, https-only sourceUrl, defaults to current work item URL, dedup by title, decided_by = caller, returns ledger link via getAppContext)
   - `src/lib/actions.js` pure helpers + tests (62/62)
-- [ ] 3.2 `agent/prompt.md` + 4 Rovo chat tests — round 1: T1 ✅ T2 ✅ T4 ✅, T3 saved (id 60005) but double confirmation → prompt tuned, awaiting T3 retest
+- [x] 3.2 `agent/prompt.md` + 4 Rovo chat tests — T1 ✅ T2 ✅ T4 ✅; T3 double-confirm fixed, retest T3b ✅ (single review card)
   - Rovo shows its own review card (Confirm/Cancel) for CREATE actions → prompt now relies on it instead of a text "does this look correct?"
   - Prompt: always call tools, cite decision/date/decider/link, plain "not found" + offer to log, verdict Conflicts / Related, no conflict / Unclear + one sentence, confirm before logging, <120 words, "work item"/"space" terms
-- [ ] 3.3 `skills/decision-guard/SKILL.md` wired to agent — written (102 lines), lint clean, deployed; wired via agent `skills:` + `dependencies.tools`
+- [x] 3.3 `skills/decision-guard/SKILL.md` wired to agent — T5 sprint check ✅ (NP-1 Conflicts, NP-4/NP-15 Related, no conflict, next-step bullet)
   - When to use, tool field table, verdict rules (superseded never conflicts, shared words ≠ conflict), answer formats (single + sprint table), errors/edge cases
-- [ ] 3.4 MCP deploy + Sprint Planner agent
+- [ ] 3.4 MCP deploy + Sprint Planner agent — awaiting user (Rovo Studio)
+  - Sprint Planner setup + instructions: `agent/sprint-planner-instructions.md`
+  - Optional: external MCP (admin.atlassian.com → Apps → Sites → Connected apps → enable tools) → `https://mcp.atlassian.com/forge/7674119a-33d5-4976-bc59-5f8955c6e895` from Claude Code
 - [ ] 3.5 STRETCH: Teamwork Graph "Connected work"
 
 ### Phase 4 — Polish & submission (Dec 18–22)
