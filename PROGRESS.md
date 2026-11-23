@@ -5,8 +5,8 @@
 **Deadline:** submit by Dec 22, 2026, 10:00 Riyadh (hard deadline 23:00 Riyadh / 12:00 PST).
 
 ## Status
-- **Current step:** 4.1 — second-user access test, test-data cleanup, production deploy
-- **Next:** 4.2 — distribution prep (privacy policy)
+- **Current step:** 4.1 done → 4.2 distribution prep (privacy policy page)
+- **Next:** 4.3 — distribution install link + 2nd-site test
 
 ## Checklist
 
@@ -97,7 +97,9 @@
   - `src/lib/twg.js` + tests (66/66)
 
 ### Phase 4 — Polish & submission (Dec 18–22)
-- [ ] 4.1 Security + app review, states, 2nd-user access test, production deploy — reviews done + fixed; next: 2nd-user test, cleanup, production
+- [x] 4.1 Security + app review, states, 2nd-user access test, production deploy
+  - 2nd-user test ✅: user B saw 27/32 (3 decisions on restricted Security page + 2 from private NP space hidden), search "SSO" 1→0 visible, Rovo found nothing; user A still 32/32. Keep user B + restrictions for the video
+  - Production deployed (prod v2.0.0, RoA-eligible), NOT installed anywhere yet. Plan: switch demo site dev→prod right before recording (4.4): uninstall dev (wipes dev ledger), install prod, rebuild demo with seed
   - Security review (`docs/SECURITY-REVIEW.md`): FSRT 0 + OpenGrep 0 (run via PS5.1-compatible copy of the skill script); manual review fixed 3: (1) Jira visibility now per work item via `issue/bulkfetch` as user (security levels), (2) guard comment quotes only Rovo decisions, (3) migration memo keyed per installation (warm-runtime cross-site bug). npm audit: only transitive advisories in latest @forge/* (downgrade "fix" rejected), markdown-it fixed
   - App review: no blockers; fixed: no DB write for ordinary new comments, migrations trigger hourly→daily, removed unused `getDecision` resolver, removed template `AGENTS.md`. README → 4.5
   - Not subscribed to trashed/deleted page events (would need `write:confluence-content`); trashed pages are hidden by the visibility check anyway
@@ -109,6 +111,8 @@
 - [ ] 4.6 USER: submit on Devpost, check links logged out
 
 ## Known issues
+- Forge CLI 16.0.0 available (have 15.1.0, major). Update at a quiet moment and re-run lint/deploy before production redeploys.
+- Seed script must be able to rebuild the full demo on a fresh production install (pages exist → no capture events; NP work items exist → no guard comments). Extend before 4.4.
 - Browsers can cache an old UI Kit bundle after deploys → tell testers/judges to hard refresh (Ctrl+Shift+R). Ledger logs `[ledger] list found=N visible=M` for diagnosis.
 - Decisions from trashed pages stay in the DB but are hidden from everyone (visibility check). Trashed/deleted events need `write:confluence-content` → deliberately not used.
 - Leftover test data before recording: "Capture test" page (personal space, 2 decisions), MC-42 comment decision, MC-62 work item, Rovo test decisions 60005/60006. (Hiring Plan live-test decision was removed by the --update re-seed, as designed.)
