@@ -7,7 +7,8 @@
   "private": true,
   "scripts": {
     "lint": "eslint src/**/*",
-    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test \"test/*.test.mjs\""
+    "test": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON --test \"test/*.test.mjs\"",
+    "seed": "node scripts/seed-demo.mjs"
   },
   "devDependencies": {
     "eslint": "^8.56.0",

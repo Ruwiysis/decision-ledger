@@ -5,8 +5,8 @@
 **Deadline:** submit by Dec 22, 2026, 10:00 Riyadh (hard deadline 23:00 Riyadh / 12:00 PST).
 
 ## Status
-- **Current step:** 2.5 — USER live test of guard
-- **Next:** 2.5 — Guard panel + issue-created trigger + Ask Decision Keeper
+- **Current step:** 2.6 — USER runs `npm run seed`
+- **Next:** 2.7 — USER end-to-end checkpoint
 
 ## Checklist
 
@@ -61,13 +61,16 @@
   - Resolvers: listDecisions (search or filtered list), listFilters, getDecision, setStatus (must see decision + replacement; logs accountId)
   - UI: search + status/space/date filters, DynamicTable (Decision button → modal, Why, Status lozenge, User, Date, Source link), modal w/ topics, Superseded-by select, Mark superseded / active again, Open source; loading, empty (2 variants), error+retry
   - Tests: 41/41
-- [ ] 2.5 Guard panel + issue-created trigger + Ask Decision Keeper — built + deployed v3.4.0, awaiting live test
+- [x] 2.5 Guard panel + issue-created trigger + Ask Decision Keeper — live OK (MC-62: 1 comment, conflictScore 8; v002 migration auto-applied)
   - `src/lib/conflict.js`: change phrases (migrate/replace/switch to/drop/move away from/…) within 8 words of a matched keyword of an ACTIVE decision → conflict; PANEL_MIN_SCORE 3, AUTO_COMMENT_MIN_SCORE 7
   - `src/guard.js`: issueText, fetchIssue, checkText (shared with check-conflicts action later)
   - Panel resolver reads issue key from context, fetches issue asUser, filters visible; UI: warning SectionMessage + View discussion + Ask Decision Keeper (`rovo.open`, appearance=rovo), top 3 cards, empty/error/loading
   - Trigger: fetch as app, one comment max via `guard_comments` table (migration v002, claim → post → record / release on failure)
   - Tests: 52/52
-- [ ] 2.6 Demo data script (Nakhla Pay), idempotent
+- [ ] 2.6 Demo data script (Nakhla Pay), idempotent — script done + offline-verified, awaiting user run
+  - `scripts/demo-data.mjs`: space NAKHLA, 9 pages / 25 decisions, Jira space NP with 15 work items (3 conflicts, 2 with `Decision:` comments). **Fictional vendors** (Rimal Pay, Sahel Gateway, Tahqeeq KYC) — no third-party trademarks
+  - `scripts/seed-demo.mjs` (`npm run seed`): classic API token via env (ATLASSIAN_SITE/EMAIL/API_TOKEN), lookup-before-create, 429 retry, waits 180s between pages and work items so capture runs first, `--dry-run`, `--confluence-only`, `--jira-only`, `--project=KEY`
+  - `test/demo-data.test.mjs`: offline end-to-end — all 25 rationales captured; 3 conflicts flagged (scores 22/39/57 ≥ 7); 12 others stay below threshold. 57/57 tests
 - [ ] 2.7 USER: end-to-end browser test
 
 ### Phase 3 — Rovo, MCP, Teamwork Graph (Dec 14–17)
@@ -87,7 +90,9 @@
 
 ## Known issues
 - Jira access check is project-level (Browse projects); issue-level security schemes not yet honoured. Revisit at 4.1.
-- 2.6 demo data script calls Jira/Confluence REST APIs; the Forge-scoped token likely can't. Plan: user creates a second token with Jira+Confluence scopes (or classic token) stored in env vars.
+- Trashed/deleted Confluence pages don't remove their decisions yet (no trashed-page trigger). Add `avi:confluence:trashed:page` in 4.1.
+- Leftover test data: "Capture test" page (personal space), MC-42 comment decision, MC-62. Clean up before recording.
+- User's planned Rovo test 3 uses real brands (Moyasar/mada) — suggest "Rimal Pay … local debit cards" instead (trademark rule for the video).
 
 ## Decisions made
 - 2026-11-22: Using Node 24 LTS (latest patch) for the Forge CLI.
