@@ -5,8 +5,8 @@
 **Deadline:** submit by Dec 22, 2026, 10:00 Riyadh (hard deadline 23:00 Riyadh / 12:00 PST).
 
 ## Status
-- **Current step:** 3.5 — STRETCH Teamwork Graph (time-boxed: half a day)
-- **Next:** 4.1 — security + app review
+- **Current step:** Phase 3 complete → 4.1 security + app review
+- **Next:** 4.2 — distribution prep (privacy policy)
 
 ## Checklist
 
@@ -90,7 +90,7 @@
 - [x] 3.4 MCP deploy + Sprint Planner agent — built in Rovo Studio (agent picker → Browse agents → Create agent); reviewed NP-1..4: 3 Conflicts + NP-4 Related, each cited, with 'Before the sprint starts' actions
   - Sprint Planner setup + instructions: `agent/sprint-planner-instructions.md`
   - Optional: external MCP (admin.atlassian.com → Apps → Sites → Connected apps → enable tools) → `https://mcp.atlassian.com/forge/7674119a-33d5-4976-bc59-5f8955c6e895` from Claude Code
-- [ ] 3.5 STRETCH: Teamwork Graph "Connected work" — built + deployed v5.0.0, awaiting live check (time box: half a day from 2026-11-23)
+- [x] 3.5 STRETCH: Teamwork Graph "Connected work" — live OK: Nakhla decisions show people + 2 linked pages (e.g. 30011/30013), Capture-test page shows people only (no links). Linked pages appear after TWG sync (minutes)
   - Curated queries (no registration): `confluencePageContributors` + `confluencePageLinkedConfluencePages` on the decision's source page (ARI `ari:cloud:confluence:<cloudId>:page/<id>`), via `api.asUser().requestTeamworkGraph` in resolver `connectedWork`
   - Scopes `read:graph:page:confluence`, `read:graph:user:atlassian` (major v5)
   - Handles ok / empty (incl. ungranted scope) / unavailable (HTTP-200 errors) / unsupported (non-Confluence decisions); modal section loads independently
@@ -108,7 +108,7 @@
 - Browsers can cache an old UI Kit bundle after deploys → tell testers/judges to hard refresh (Ctrl+Shift+R). Ledger logs `[ledger] list found=N visible=M` for diagnosis.
 - Jira access check is project-level (Browse projects); issue-level security schemes not yet honoured. Revisit at 4.1.
 - Trashed/deleted Confluence pages don't remove their decisions yet (no trashed-page trigger). Add `avi:confluence:trashed:page` in 4.1.
-- Leftover test data: "Capture test" page (personal space), MC-42 comment decision, MC-62. Clean up before recording.
+- Leftover test data before recording: "Capture test" page (personal space, 2 decisions), MC-42 comment decision, MC-62 work item, Rovo test decisions 60005/60006. (Hiring Plan live-test decision was removed by the --update re-seed, as designed.)
 
 ## Decisions made
 - 2026-11-22: Using Node 24 LTS (latest patch) for the Forge CLI.
