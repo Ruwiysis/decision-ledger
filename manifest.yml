@@ -38,11 +38,11 @@ modules:
       filter:
         ignoreSelf: true
 
-  # Applies Forge SQL schema migrations (Forge also re-runs pending/failed ones).
+  # Safety net for Forge SQL migrations (they also run lazily on first DB use per installation).
   scheduledTrigger:
     - key: db-migrations
       function: run-migrations
-      interval: hour
+      interval: day
 
   # ------------------------------------------------------------- Rovo
   rovo:agent:

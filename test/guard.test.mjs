@@ -62,13 +62,13 @@ test('issueText joins summary and ADF description', () => {
 
 const flat = (adf) => JSON.stringify(adf);
 
-test('buildConflictComment quotes same-space Jira decisions but not Confluence ones', () => {
-  const jiraHit = { decision: moyasar };
-  const same = flat(buildConflictComment({ issueKey: 'PAY-7', projectId: '10000', hit: jiraHit }));
-  assert.ok(same.includes('Use Moyasar for payments') && same.includes('View discussion'));
-  const other = flat(buildConflictComment({ issueKey: 'OPS-7', projectId: '20000', hit: jiraHit }));
-  assert.ok(!other.includes('Moyasar'), 'other-space decision not quoted');
-  const conf = flat(buildConflictComment({ issueKey: 'PAY-7', projectId: '10000', hit: { decision: pg } }));
+test('buildConflictComment quotes only Rovo-logged decisions; Jira/Confluence get a neutral pointer', () => {
+  const rovoHit = { decision: { ...moyasar, sourceType: 'rovo', sourceUrl: null } };
+  const quoted = flat(buildConflictComment({ issueKey: 'PAY-7', hit: rovoHit }));
+  assert.ok(quoted.includes('Use Moyasar for payments'));
+  const jiraComment = flat(buildConflictComment({ issueKey: 'PAY-7', hit: { decision: moyasar } }));
+  assert.ok(!jiraComment.includes('Moyasar') && jiraComment.includes('another Jira work item'), 'Jira decision (maybe security-restricted) not quoted');
+  const conf = flat(buildConflictComment({ issueKey: 'PAY-7', hit: { decision: pg } }));
   assert.ok(!conf.includes('PostgreSQL') && conf.includes('Related decisions'));
   assert.ok(conf.includes('Does PAY-7 go against any past decision?'));
 });

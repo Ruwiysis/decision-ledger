@@ -1,3 +1,4 @@
+import { getAppContext } from '@forge/api';
 import { migrationRunner } from '@forge/sql';
 
 // Forge SQL schema. Each statement is applied once per installation, in order, and
@@ -40,18 +41,34 @@ const migrations = migrationRunner
   .enqueue('v001_create_decisions', CREATE_DECISIONS)
   .enqueue('v002_create_guard_comments', CREATE_GUARD_COMMENTS);
 
-let ready = null;
+// Warm runtimes are reused across installations (sites), and each installation has its own
+// database. So "schema is ready" must be remembered PER INSTALLATION, never globally:
+// a global flag would let a new site skip its migrations. Only a promise is cached here,
+// never tenant data.
+const readyByInstallation = new Map();
+
+function installationKey() {
+  try {
+    return getAppContext().installationAri.installationId;
+  } catch {
+    return null; // outside Forge (tests): never cache
+  }
+}
 
 /**
- * Apply pending migrations once per function runtime. Every DB entry point awaits this,
- * so a fresh install works immediately instead of waiting for the hourly trigger.
+ * Apply pending migrations once per installation per runtime. Every DB entry point awaits
+ * this, so a fresh install works immediately instead of waiting for the hourly trigger.
  */
 export function ensureSchema() {
+  const key = installationKey();
+  if (!key) return migrations.run();
+  let ready = readyByInstallation.get(key);
   if (!ready) {
     ready = migrations.run().catch((err) => {
-      ready = null; // let the next call retry
+      readyByInstallation.delete(key); // let the next call retry
       throw err;
     });
+    readyByInstallation.set(key, ready);
   }
   return ready;
 }

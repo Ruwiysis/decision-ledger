@@ -40,18 +40,50 @@ export async function visibleJiraProjects(projectIds, requester = api.asUser()) 
   return visible;
 }
 
+/** Work item key a Jira-sourced decision came from (its sourceUrl is /browse/KEY?focusedCommentId=…). */
+export function jiraIssueKey(decision) {
+  const m = String(decision?.sourceUrl || '').match(/\/browse\/([A-Z][A-Z0-9_]{0,19}-\d{1,9})(?:[?#/]|$)/);
+  return m ? m[1] : null;
+}
+
+/**
+ * Jira: POST /rest/api/3/issue/bulkfetch returns only work items the user can see, honouring
+ * Browse projects AND work item security levels; others come back in issueErrors (max 100 per call).
+ */
+export async function visibleJiraIssues(issueKeys, requester = api.asUser()) {
+  const keys = [...new Set(issueKeys.filter((k) => /^[A-Z][A-Z0-9_]{0,19}-\d{1,9}$/.test(String(k))))];
+  const visible = new Set();
+  for (const group of chunk(keys, 100)) {
+    const res = await requester.requestJira(route`/rest/api/3/issue/bulkfetch`, {
+      method: 'POST',
+      headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
+      body: JSON.stringify({ issueIdsOrKeys: group, fields: ['summary'] }),
+    });
+    if (!res.ok) throw new Error(`Jira work item visibility check failed: ${res.status}`);
+    const body = await res.json();
+    for (const issue of body.issues || []) visible.add(String(issue.key));
+  }
+  return visible;
+}
+
 /**
  * Pure rule: which decisions are visible given the sets of visible page/project ids.
  * - confluence: the source page must be visible (covers page restrictions + space permissions)
- * - jira: the work item's project (space) must be browsable
+ * - jira: the source work item must be visible (`issues`, honours security levels); the older
+ *   space-level rule (`projects`) only applies when no work item set is given
  * - rovo: logged in chat, not tied to a container: visible to everyone with app access
  * A null set means the check failed -> hide that source type (fail closed).
  */
-export function applyVisibility(decisions, { pages, projects }) {
+export function applyVisibility(decisions, { pages, projects, issues }) {
   return decisions.filter((d) => {
     if (d.sourceType === 'rovo') return true;
     if (d.sourceType === 'confluence') return !!pages && pages.has(String(d.sourceId));
-    if (d.sourceType === 'jira') return !!projects && !!d.containerId && projects.has(String(d.containerId));
+    if (d.sourceType === 'jira') {
+      // Work-item level when known (security levels); fail closed if the key is unknown.
+      const key = jiraIssueKey(d);
+      if (issues !== undefined) return !!issues && !!key && issues.has(key);
+      return !!projects && !!d.containerId && projects.has(String(d.containerId));
+    }
     return false;
   });
 }
@@ -64,18 +96,18 @@ export async function filterVisible(items, { pick = (x) => x, requester } = {}) 
   const list = items || [];
   const decisions = list.map(pick);
   const pageIds = decisions.filter((d) => d.sourceType === 'confluence').map((d) => d.sourceId);
-  const projectIds = decisions.filter((d) => d.sourceType === 'jira' && d.containerId).map((d) => d.containerId);
+  const issueKeys = decisions.filter((d) => d.sourceType === 'jira').map(jiraIssueKey).filter(Boolean);
   const asUser = requester || api.asUser();
 
-  const [pages, projects] = await Promise.all([
+  const [pages, issues] = await Promise.all([
     pageIds.length
       ? visibleConfluencePages(pageIds, asUser).catch((e) => (console.warn(`[access] ${e.message}`), null))
       : new Set(),
-    projectIds.length
-      ? visibleJiraProjects(projectIds, asUser).catch((e) => (console.warn(`[access] ${e.message}`), null))
+    issueKeys.length
+      ? visibleJiraIssues(issueKeys, asUser).catch((e) => (console.warn(`[access] ${e.message}`), null))
       : new Set(),
   ]);
-  const allowed = new Set(applyVisibility(decisions, { pages, projects }).map((d) => d.id));
+  const allowed = new Set(applyVisibility(decisions, { pages, issues }).map((d) => d.id));
   return list.filter((item) => allowed.has(pick(item).id));
 }
 

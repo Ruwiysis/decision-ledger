@@ -40,7 +40,10 @@ export async function captureComment(event, { store = defaultStore, siteUrl = nu
   const sourceId = String(comment.id);
   const parsed = parseDecisionComment(commentLines(comment.body));
   if (!parsed) {
-    // Edited away from "Decision:", or an ordinary comment: make sure nothing is left behind.
+    // An ordinary new comment can't have left a decision behind: skip the DB entirely.
+    // Only an EDITED comment (updated != created) may have had "Decision:" removed.
+    const edited = comment.updated && comment.created && comment.updated !== comment.created;
+    if (!edited) return { saved: 0, removed: 0 };
     const removed = await store.removeStaleForSource('jira', sourceId, []);
     return { saved: 0, removed };
   }
@@ -92,13 +95,15 @@ const link = (t, href) => text(t, [{ type: 'link', attrs: { href } }]);
 
 /**
  * Build the one-time conflict comment (ADF).
- * Privacy: a comment is visible to everyone who can see the work item, so decision details
- * are only quoted when they come from the same Jira space or from Rovo chat. Decisions from
- * Confluence (which may be restricted) get a neutral pointer to the permission-aware panel.
+ * Privacy: a comment is visible to everyone who can see the work item, but the app cannot
+ * check each of those readers. So it only quotes decisions logged in Rovo chat (team-wide by
+ * design). Decisions from Confluence pages or other Jira work items may be restricted (page
+ * restrictions, work item security levels), so they get a neutral pointer to the
+ * permission-aware panel, which shows details only to people who may see them.
  */
-export function buildConflictComment({ issueKey, projectId, hit }) {
+export function buildConflictComment({ issueKey, hit }) {
   const d = hit.decision;
-  const safeToQuote = d.sourceType === 'rovo' || (d.sourceType === 'jira' && String(d.containerId) === String(projectId));
+  const safeToQuote = d.sourceType === 'rovo';
   const content = [
     {
       type: 'paragraph',
@@ -112,7 +117,11 @@ export function buildConflictComment({ issueKey, projectId, hit }) {
   } else {
     content.push({
       type: 'paragraph',
-      content: [text('The related decision was recorded in Confluence. Open the “Related decisions” panel on this work item to review it (you will only see decisions you have access to).')],
+      content: [
+        text(
+          `The related decision was recorded in ${d.sourceType === 'jira' ? 'another Jira work item' : 'Confluence'}. Open the “Related decisions” panel on this work item to review it (you will only see decisions you have access to).`
+        ),
+      ],
     });
   }
   content.push({
@@ -139,7 +148,6 @@ export async function guardNewIssue(event, deps = {}) {
 
   const issue = await fetchIssue(key, requester);
   if (!issue) return { skipped: 'issue not found' };
-  const projectId = issue.fields?.project?.id || event.issue.fields?.project?.id;
   const { related } = await checkText(issueText(issue), { store, limit: 3 });
   const best = related.find((r) => r.conflict);
   if (!best || best.conflictScore < minScore) {
@@ -151,7 +159,7 @@ export async function guardNewIssue(event, deps = {}) {
     const res = await requester.requestJira(route`/rest/api/3/issue/${key}/comment`, {
       method: 'POST',
       headers: { Accept: 'application/json', 'Content-Type': 'application/json' },
-      body: JSON.stringify({ body: buildConflictComment({ issueKey: key, projectId, hit: best }) }),
+      body: JSON.stringify({ body: buildConflictComment({ issueKey: key, hit: best }) }),
     });
     if (!res.ok) throw new Error(`POST comment failed: ${res.status}`);
     const comment = await res.json();

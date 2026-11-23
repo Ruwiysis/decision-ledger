@@ -5,7 +5,7 @@
 **Deadline:** submit by Dec 22, 2026, 10:00 Riyadh (hard deadline 23:00 Riyadh / 12:00 PST).
 
 ## Status
-- **Current step:** Phase 3 complete → 4.1 security + app review
+- **Current step:** 4.1 — second-user access test, test-data cleanup, production deploy
 - **Next:** 4.2 — distribution prep (privacy policy)
 
 ## Checklist
@@ -97,7 +97,11 @@
   - `src/lib/twg.js` + tests (66/66)
 
 ### Phase 4 — Polish & submission (Dec 18–22)
-- [ ] 4.1 Security + app review, states, 2nd-user access test, production deploy
+- [ ] 4.1 Security + app review, states, 2nd-user access test, production deploy — reviews done + fixed; next: 2nd-user test, cleanup, production
+  - Security review (`docs/SECURITY-REVIEW.md`): FSRT 0 + OpenGrep 0 (run via PS5.1-compatible copy of the skill script); manual review fixed 3: (1) Jira visibility now per work item via `issue/bulkfetch` as user (security levels), (2) guard comment quotes only Rovo decisions, (3) migration memo keyed per installation (warm-runtime cross-site bug). npm audit: only transitive advisories in latest @forge/* (downgrade "fix" rejected), markdown-it fixed
+  - App review: no blockers; fixed: no DB write for ordinary new comments, migrations trigger hourly→daily, removed unused `getDecision` resolver, removed template `AGENTS.md`. README → 4.5
+  - Not subscribed to trashed/deleted page events (would need `write:confluence-content`); trashed pages are hidden by the visibility check anyway
+  - Tests 68/68
 - [ ] 4.2 Distribution prep: privacy policy page (GitHub Pages) + app details for Sharing — **no Marketplace listing**
 - [ ] 4.3 Distribution install link (single app, "Sharing"), test on 2nd site
 - [ ] 4.4 Video script + architecture diagram; USER records + uploads
@@ -106,8 +110,7 @@
 
 ## Known issues
 - Browsers can cache an old UI Kit bundle after deploys → tell testers/judges to hard refresh (Ctrl+Shift+R). Ledger logs `[ledger] list found=N visible=M` for diagnosis.
-- Jira access check is project-level (Browse projects); issue-level security schemes not yet honoured. Revisit at 4.1.
-- Trashed/deleted Confluence pages don't remove their decisions yet (no trashed-page trigger). Add `avi:confluence:trashed:page` in 4.1.
+- Decisions from trashed pages stay in the DB but are hidden from everyone (visibility check). Trashed/deleted events need `write:confluence-content` → deliberately not used.
 - Leftover test data before recording: "Capture test" page (personal space, 2 decisions), MC-42 comment decision, MC-62 work item, Rovo test decisions 60005/60006. (Hiring Plan live-test decision was removed by the --update re-seed, as designed.)
 
 ## Decisions made

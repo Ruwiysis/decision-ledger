@@ -1,9 +1,9 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { applyVisibility, filterVisible } from '../src/access.js';
+import { applyVisibility, filterVisible, jiraIssueKey } from '../src/access.js';
 
 const conf = (id, page) => ({ id, sourceType: 'confluence', sourceId: page });
-const jira = (id, project) => ({ id, sourceType: 'jira', sourceId: `c${id}`, containerId: project });
+const jira = (id, project, key = `NP-${id}`) => ({ id, sourceType: 'jira', sourceId: `c${id}`, containerId: project, sourceUrl: key ? `https://x.atlassian.net/browse/${key}?focusedCommentId=c${id}` : null });
 const rovo = (id) => ({ id, sourceType: 'rovo', sourceId: `r${id}` });
 
 test('applyVisibility: pages and projects must be visible; rovo always visible', () => {
@@ -25,16 +25,30 @@ function requester({ pages = [], projects = [], confluenceStatus = 200, jiraStat
   return {
     calls,
     requestConfluence: async (r) => (calls.push(String(r?.value ?? r)), respond(confluenceStatus, { results: pages.map((id) => ({ id })) })),
-    requestJira: async (r) => (calls.push(String(r?.value ?? r)), respond(jiraStatus, { values: projects.map((id) => ({ id })) })),
+    // bulkfetch: only the keys listed in `projects` (reused as visible work item keys) come back
+    requestJira: async (r, opts) => {
+      calls.push(String(r?.value ?? r));
+      const asked = JSON.parse(opts?.body || '{}').issueIdsOrKeys || [];
+      return respond(jiraStatus, { issues: asked.filter((k) => projects.includes(k)).map((key) => ({ key })) });
+    },
   };
 }
 
 test('filterVisible batches checks and filters wrapped search results via pick', async () => {
   const items = [conf(1, '100'), conf(2, '200'), jira(3, '10000'), rovo(4)].map((d) => ({ decision: d, score: 1 }));
-  const req = requester({ pages: ['200'], projects: ['10000'] });
+  const req = requester({ pages: ['200'], projects: ['NP-3'] });
   const out = await filterVisible(items, { pick: (x) => x.decision, requester: req });
   assert.deepEqual(out.map((x) => x.decision.id), [2, 3, 4]);
   assert.equal(req.calls.length, 2, 'one Confluence + one Jira call');
+});
+
+test('Jira decisions are checked per work item (security levels), not per space', async () => {
+  // Same space 10000, but the user can only see NP-1: NP-2 has a security level.
+  const list = [jira(1, '10000'), jira(2, '10000'), jira(3, '10000', null)];
+  const out = await filterVisible(list, { requester: requester({ projects: ['NP-1'] }) });
+  assert.deepEqual(out.map((d) => d.id), [1]);
+  assert.equal(jiraIssueKey(jira(9, '1', 'ABC-12')), 'ABC-12');
+  assert.equal(jiraIssueKey({ sourceUrl: 'https://x/wiki/p/1' }), null);
 });
 
 test('filterVisible hides a source type whose API check errors, keeps the rest', async () => {

@@ -78,22 +78,6 @@ resolver.define('listFilters', async () => {
   }
 });
 
-resolver.define('getDecision', async ({ payload = {} }) => {
-  try {
-    const d = await decisions.getById(payload.id);
-    if (!d || !(await canSee(d))) return fail('Decision not found.');
-    return ok({ decision: d });
-  } catch (err) {
-    console.error(`[ledger] getDecision failed: ${err?.message}`);
-    return fail('Could not load this decision.');
-  }
-});
-
-/**
- * Teamwork Graph "Connected work" for a decision's source page: who contributed and which
- * pages it links to. Runs AS THE USER (Teamwork Graph never runs as the app), so results are
- * already permission-filtered. Never throws to the UI: returns ok / empty / unavailable.
- */
 resolver.define('connectedWork', async ({ payload = {}, context }) => {
   try {
     const d = await decisions.getById(payload.id);

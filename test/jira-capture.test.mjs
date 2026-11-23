@@ -101,9 +101,17 @@ test('captureComment saves a decision with project, author, link and topics', as
 
 test('captureComment removes the decision when a comment is edited to no longer be one', async () => {
   const store = fakeStore();
-  const result = await captureComment(event(doc(para('Never mind, still discussing'))), { store });
+  const edited = event(doc(para('Never mind, still discussing')), { updated: '2026-03-02T09:00:00.000+0300' });
+  const result = await captureComment(edited, { store });
   assert.deepEqual(result, { saved: 0, removed: 1 });
   assert.equal(store.upserts.length, 0);
+});
+
+test('captureComment does no DB work for an ordinary new comment', async () => {
+  const store = fakeStore();
+  const fresh = event(doc(para('Looks good to me')), { updated: '2026-03-01T12:00:00.000+0300' });
+  assert.deepEqual(await captureComment(fresh, { store }), { saved: 0, removed: 0 });
+  assert.equal(store.upserts.length + store.removals.length, 0);
 });
 
 test('captureComment skips restricted comments and malformed events', async () => {
