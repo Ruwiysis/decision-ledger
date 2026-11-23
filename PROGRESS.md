@@ -5,8 +5,8 @@
 **Deadline:** submit by Dec 22, 2026, 10:00 Riyadh (hard deadline 23:00 Riyadh / 12:00 PST).
 
 ## Status
-- **Current step:** 2.6 — USER runs `npm run seed`
-- **Next:** 2.7 — USER end-to-end checkpoint
+- **Current step:** 2.7 — USER end-to-end checkpoint
+- **Next:** 3.1 — implement the four Rovo actions
 
 ## Checklist
 
@@ -67,7 +67,7 @@
   - Panel resolver reads issue key from context, fetches issue asUser, filters visible; UI: warning SectionMessage + View discussion + Ask Decision Keeper (`rovo.open`, appearance=rovo), top 3 cards, empty/error/loading
   - Trigger: fetch as app, one comment max via `guard_comments` table (migration v002, claim → post → record / release on failure)
   - Tests: 52/52
-- [ ] 2.6 Demo data script (Nakhla Pay), idempotent — script done + offline-verified, awaiting user run
+- [x] 2.6 Demo data script (Nakhla Pay), idempotent — seeded live: 25 decisions captured, NP-1/2/3 auto-commented (scores 22/39/57, identical to offline test), NP-6/NP-7 Decision comments captured, 12 others quiet
   - `scripts/demo-data.mjs`: space NAKHLA, 9 pages / 25 decisions, Jira space NP with 15 work items (3 conflicts, 2 with `Decision:` comments). **Fictional vendors** (Rimal Pay, Sahel Gateway, Tahqeeq KYC) — no third-party trademarks
   - `scripts/seed-demo.mjs` (`npm run seed`): classic API token via env (ATLASSIAN_SITE/EMAIL/API_TOKEN), lookup-before-create, 429 retry, waits 180s between pages and work items so capture runs first, `--dry-run`, `--confluence-only`, `--jira-only`, `--project=KEY`
   - `test/demo-data.test.mjs`: offline end-to-end — all 25 rationales captured; 3 conflicts flagged (scores 22/39/57 ≥ 7); 12 others stay below threshold. 57/57 tests
