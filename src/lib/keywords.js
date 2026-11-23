@@ -12,7 +12,8 @@ const STOPWORDS = new Set(
   would you your yours yourself
   let lets make made need needs needed new use used using via per etc get got going want wants
   team teams please thanks issue issues ticket tickets task tasks story work item items page
-  decision decisions decided decide because also should would maybe`
+  decision decisions decided decide because also should would maybe
+  stay keep keeps adopt choose chose chosen go goes agreed agree`
     .split(/\s+/)
     .filter(Boolean)
 );

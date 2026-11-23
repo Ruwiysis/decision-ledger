@@ -86,8 +86,11 @@ const decisionList = (items) => ({
   })),
 });
 
-/** Page ADF. Each Decision carries a /date: the page's decidedOn plus 2 days per section. */
-export function pageAdf(page) {
+/**
+ * Page ADF. Each Decision carries a /date: the page's decidedOn plus 2 days per section.
+ * `links` (title -> URL) adds a "Related pages" line, which Teamwork Graph picks up as page links.
+ */
+export function pageAdf(page, links = {}) {
   const base = page.decidedOn ? Date.parse(`${page.decidedOn}T09:00:00Z`) : null;
   const content = [];
   if (page.intro) content.push(p(page.intro));
@@ -99,6 +102,15 @@ export function pageAdf(page) {
       if (d.because) content.push(p(t('Because: ', [{ type: 'strong' }]), d.because));
     }
   });
+  const related = (page.related || []).filter((t) => links[t]);
+  if (related.length) {
+    const parts = [t('Related pages: ', [{ type: 'strong' }])];
+    related.forEach((title, i) => {
+      if (i) parts.push(t(' · '));
+      parts.push(t(title, [{ type: 'link', attrs: { href: links[title] } }]));
+    });
+    content.push({ type: 'rule' }, { type: 'paragraph', content: parts });
+  }
   return { type: 'doc', version: 1, content };
 }
 
@@ -123,7 +135,19 @@ async function ensureSpace() {
   return again.results[0];
 }
 
-async function ensurePage(space, page) {
+/** Title -> URL of the demo pages that already exist (used to cross-link them on --update). */
+async function pageLinks(space) {
+  const links = {};
+  for (const page of PAGES) {
+    const q = new URLSearchParams({ 'space-id': space.id, title: page.title, status: 'current' });
+    const found = await http('GET', `/wiki/api/v2/pages?${q}`);
+    const id = found.results?.[0]?.id;
+    if (id) links[page.title] = `${BASE}/wiki/spaces/${SPACE.key}/pages/${id}`;
+  }
+  return links;
+}
+
+async function ensurePage(space, page, links = {}) {
   const decisions = page.sections.reduce((n, s) => n + s.decisions.length, 0);
   if (DRY) return log(`[dry] page "${page.title}" (${decisions} decisions, labels: ${page.labels.join(', ')})`);
   const q = new URLSearchParams({ 'space-id': space.id, title: page.title, status: 'current' });
@@ -136,7 +160,7 @@ async function ensurePage(space, page) {
       id: current.id,
       status: 'current',
       title: page.title,
-      body: { representation: 'atlas_doc_format', value: JSON.stringify(pageAdf(page)) },
+      body: { representation: 'atlas_doc_format', value: JSON.stringify(pageAdf(page, links)) },
       version: { number: (current.version?.number || 1) + 1, message: 'Decision Ledger demo update' },
     });
     return log(`~ page "${page.title}" updated (${decisions} decisions)`);
@@ -219,7 +243,8 @@ async function main() {
   log(`Nakhla Pay demo seed → ${DRY ? '(dry run)' : BASE}`);
   if (!args['jira-only']) {
     const space = await ensureSpace();
-    for (const page of PAGES) await ensurePage(space, page);
+    const links = args.update && !DRY ? await pageLinks(space) : {};
+    for (const page of PAGES) await ensurePage(space, page, links);
     const total = PAGES.reduce((n, pg) => n + pg.sections.reduce((m, s) => m + s.decisions.length, 0), 0);
     log(`Confluence: ${PAGES.length} pages, ${total} decisions.`);
   }

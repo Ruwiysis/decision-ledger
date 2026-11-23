@@ -55,6 +55,9 @@ const SOURCE_LABEL = {
 const formatDate = (iso) =>
   iso ? new Date(iso).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : '—';
 
+// Personal spaces have keys like "~712020…": show a readable label instead.
+const spaceLabel = (key) => (!key ? '' : key.startsWith('~') ? 'Personal space' : key);
+
 const truncate = (s, n) => (s && s.length > n ? `${s.slice(0, n - 1)}…` : s || '');
 
 // Rationales are often captured mid-sentence ("Because: the team…"): capitalise for display.
@@ -98,14 +101,14 @@ const ConnectedWork = ({ decision }) => {
         <Text color="color.text.subtle">Connected work isn't available right now.</Text>
       )}
       {!state.loading && state.status === 'empty' && (
-        <Text color="color.text.subtle">No other contributors or linked pages found for this decision's page.</Text>
+        <Text color="color.text.subtle">Teamwork Graph has no contributors or linked pages for this decision's page yet.</Text>
       )}
       {!state.loading && state.status === 'ok' && (
         <Stack space="space.100">
           {(state.people || []).length > 0 && (
             <Stack space="space.050">
               <Text size="small" color="color.text.subtle">
-                People who shaped the page
+                People who worked on this page
               </Text>
               <Inline space="space.100" shouldWrap>
                 {(state.people || []).map((p) => (
@@ -169,7 +172,7 @@ const DecisionModal = ({ decision, allDecisions, onClose, onChanged }) => {
             <StatusLozenge status={decision.status} />
             <Text color="color.text.subtle">
               {SOURCE_LABEL[decision.sourceType] || decision.sourceType}
-              {decision.spaceOrProject ? ` · ${decision.spaceOrProject}` : ''} · {formatDate(decision.decidedAt)}
+              {decision.spaceOrProject ? ` · ${spaceLabel(decision.spaceOrProject)}` : ''} · {formatDate(decision.decidedAt)}
             </Text>
           </Inline>
           {error && (
@@ -305,7 +308,7 @@ const App = () => {
   };
 
   const spaceOptions = (spaces || []).map((s) => ({
-    label: `${s.key} (${s.sourceType === 'jira' ? 'Jira space' : 'Confluence space'})`,
+    label: `${spaceLabel(s.key)} (${s.sourceType === 'jira' ? 'Jira space' : 'Confluence space'})`,
     value: s.key,
   }));
 

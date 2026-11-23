@@ -108,7 +108,7 @@ resolver.define('connectedWork', async ({ payload = {}, context }) => {
       console.warn(`[twg] connectedWork ${d.id} HTTP ${res.status}`);
       return ok({ status: 'unavailable', people: [], pages: [] });
     }
-    const parsed = parseConnectedWork(body, { excludeAccountIds: [d.decidedBy] });
+    const parsed = parseConnectedWork(body);
     if (parsed.errors.length) console.warn(`[twg] connectedWork ${d.id} errors: ${parsed.errors.slice(0, 3).join(' | ')}`);
     console.log(`[twg] connectedWork ${d.id} status=${parsed.status} people=${parsed.people.length} pages=${parsed.pages.length}`);
     return ok({ status: parsed.status === 'error' ? 'unavailable' : parsed.status, people: parsed.people, pages: parsed.pages });
