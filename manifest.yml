@@ -7,7 +7,7 @@ modules:
         function: resolver
       render: native
       title: Related decisions
-      icon: https://developer.atlassian.com/platform/forge/images/icons/issue-panel-icon.svg
+      icon: resource:icons;decision-ledger.png
 
   confluence:globalPage:
     - key: decision-ledger-page
@@ -16,6 +16,7 @@ modules:
         function: resolver
       render: native
       title: Decision Ledger
+      icon: resource:icons;decision-ledger.png
       route: decision-ledger
 
   # ---------------------------------------------------------- Capture
@@ -48,6 +49,7 @@ modules:
   rovo:agent:
     - key: decision-agent
       name: Decision Keeper
+      icon: resource:icons;decision-ledger.png
       description: Finds past team decisions, explains why they were made, and checks whether new work conflicts with them.
       prompt: resource:agent-prompt;prompt.md
       conversationStarters:
@@ -175,6 +177,8 @@ resources:
     path: src/frontend/ledger.jsx
   - key: agent-prompt
     path: agent
+  - key: icons
+    path: static/icons
 
 permissions:
   scopes:
