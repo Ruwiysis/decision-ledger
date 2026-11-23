@@ -5,8 +5,8 @@
 **Deadline:** submit by Dec 22, 2026, 10:00 Riyadh (hard deadline 23:00 Riyadh / 12:00 PST).
 
 ## Status
-- **Current step:** 3.1 — Rovo actions
-- **Next:** 3.2 — agent prompt + 4 Rovo chat tests
+- **Current step:** 3.2 — USER runs 4 Rovo chat tests
+- **Next:** 3.3 — decision-guard skill
 
 ## Checklist
 
@@ -78,8 +78,12 @@
   - Browser cache showed the old ledger once → hard refresh fixed it
 
 ### Phase 3 — Rovo, MCP, Teamwork Graph (Dec 14–17)
-- [ ] 3.1 Four action functions
-- [ ] 3.2 `agent/prompt.md` + 4 Rovo chat tests
+- [x] 3.1 Four action functions — deployed v4.0.0 (major: new scope `read:jira-user` for decider names)
+  - `src/actions/index.js`: identity only from `context.principal.accountId`; all reads filtered as the user; compact JSON replies; errors returned as JSON (agent explains)
+  - search-decisions (top 5 visible), get-decision (+ supersededBy), check-conflicts (key / URL / "Does NP-1…" / free text / Rovo context key; returns relevance, matchedWords, changeWords, conflictSignal), log-decision (validated, https-only sourceUrl, defaults to current work item URL, dedup by title, decided_by = caller, returns ledger link via getAppContext)
+  - `src/lib/actions.js` pure helpers + tests (62/62)
+- [ ] 3.2 `agent/prompt.md` + 4 Rovo chat tests — prompt written + deployed, awaiting user tests
+  - Prompt: always call tools, cite decision/date/decider/link, plain "not found" + offer to log, verdict Conflicts / Related, no conflict / Unclear + one sentence, confirm before logging, <120 words, "work item"/"space" terms
 - [ ] 3.3 `skills/decision-guard/SKILL.md` wired to agent
 - [ ] 3.4 MCP deploy + Sprint Planner agent
 - [ ] 3.5 STRETCH: Teamwork Graph "Connected work"
@@ -97,7 +101,6 @@
 - Jira access check is project-level (Browse projects); issue-level security schemes not yet honoured. Revisit at 4.1.
 - Trashed/deleted Confluence pages don't remove their decisions yet (no trashed-page trigger). Add `avi:confluence:trashed:page` in 4.1.
 - Leftover test data: "Capture test" page (personal space), MC-42 comment decision, MC-62. Clean up before recording.
-- User's planned Rovo test 3 uses real brands (Moyasar/mada) — suggest "Rimal Pay … local debit cards" instead (trademark rule for the video).
 
 ## Decisions made
 - 2026-11-22: Using Node 24 LTS (latest patch) for the Forge CLI.

@@ -68,19 +68,19 @@ modules:
       function: action-search-decisions
       actionVerb: GET
       description: >
-        Search the team's Decision Ledger for past decisions matching a topic or question.
-        Returns the top 5 matches with title, rationale, status, decider, date and source link.
+        Search the team's Decision Ledger for past decisions about a topic, e.g. why something was decided.
+        Returns up to 5 matches with the decision, why, status, who decided, date and link.
       inputs:
         query:
           title: Query
           type: string
           required: true
-          description: Keywords or a question describing the decision to find, e.g. "PostgreSQL" or "why did we pick Moyasar".
+          description: Keywords or a question describing the decision to find, e.g. "PostgreSQL" or "why did we pick Rimal Pay".
     - key: get-decision
       name: Get decision
       function: action-get-decision
       actionVerb: GET
-      description: Get the full details of one decision from the Decision Ledger by its ID.
+      description: Get the full details of one decision from the Decision Ledger by its numeric ID (from search-decisions or check-conflicts).
       inputs:
         decisionId:
           title: Decision ID
@@ -92,19 +92,21 @@ modules:
       function: action-check-conflicts
       actionVerb: GET
       description: >
-        Check a proposal, plan or Jira issue against past decisions. Returns related decisions
-        with relevance scores and the words that matched, so the agent can judge whether it conflicts.
+        Check planned work against past team decisions. Input is a Jira work item key (e.g. NP-1) or the plan
+        in words. Returns related decisions with matched words and a conflictSignal hint to judge.
       inputs:
         text:
           title: Proposal text or issue key
           type: string
           required: true
-          description: Either free text describing the planned work, or a Jira issue key such as ABC-123.
+          description: A Jira work item key such as NP-1, or the planned work described in plain words.
     - key: log-decision
       name: Log decision
       function: action-log-decision
       actionVerb: CREATE
-      description: Record a new decision in the Decision Ledger. Only call after the user has confirmed the title and rationale.
+      description: >
+        Record a new team decision in the Decision Ledger. Only call after the user explicitly confirmed
+        the exact decision and reason. The current user is recorded as the decider.
       inputs:
         title:
           title: Decision
@@ -180,6 +182,7 @@ permissions:
     - write:jira-work
     - read:page:confluence
     - read:confluence-content.summary
+    - read:jira-user
 
 app:
   runtime:
