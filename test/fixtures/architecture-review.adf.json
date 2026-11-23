@@ -1,0 +1,73 @@
+{
+  "version": 1,
+  "type": "doc",
+  "content": [
+    { "type": "heading", "attrs": { "level": 1 }, "content": [{ "type": "text", "text": "Reporting database" }] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "We reviewed PostgreSQL vs MongoDB for reporting." }] },
+    {
+      "type": "decisionList",
+      "attrs": { "localId": "dl-1" },
+      "content": [
+        {
+          "type": "decisionItem",
+          "attrs": { "localId": "d-1", "state": "DECIDED" },
+          "content": [{ "type": "text", "text": "Stay on " }, { "type": "text", "text": "PostgreSQL", "marks": [{ "type": "strong" }] }, { "type": "text", "text": " for the reporting database" }]
+        }
+      ]
+    },
+    { "type": "paragraph", "content": [] },
+    { "type": "paragraph", "content": [{ "type": "text", "text": "Because: our team already runs Postgres and reporting needs joins across ledgers." }] },
+
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "Payments provider" }] },
+    {
+      "type": "decisionList",
+      "attrs": { "localId": "dl-2" },
+      "content": [
+        {
+          "type": "decisionItem",
+          "attrs": { "localId": "d-2", "state": "DECIDED" },
+          "content": [{ "type": "text", "text": "Use Moyasar for card payments because it supports mada" }]
+        },
+        {
+          "type": "decisionItem",
+          "attrs": { "localId": "d-3", "state": "UNDECIDED" },
+          "content": [{ "type": "text", "text": "Maybe add Apple Pay later" }]
+        },
+        {
+          "type": "decisionItem",
+          "attrs": { "localId": "d-4", "state": "DECIDED" },
+          "content": [{ "type": "text", "text": "Settle payouts daily" }]
+        }
+      ]
+    },
+    { "type": "heading", "attrs": { "level": 2 }, "content": [{ "type": "text", "text": "Security" }] },
+    {
+      "type": "panel",
+      "attrs": { "panelType": "info" },
+      "content": [
+        {
+          "type": "decisionList",
+          "attrs": { "localId": "dl-3" },
+          "content": [
+            {
+              "type": "decisionItem",
+              "attrs": { "localId": "d-5", "state": "DECIDED" },
+              "content": [
+                { "type": "text", "text": "Require SSO for all staff, owner " },
+                { "type": "mention", "attrs": { "id": "acc-9", "text": "@Sara" } }
+              ]
+            }
+          ]
+        },
+        { "type": "paragraph", "content": [{ "type": "text", "text": "Reduces account takeover risk flagged in the audit." }] }
+      ]
+    },
+    {
+      "type": "decisionList",
+      "attrs": { "localId": "dl-4" },
+      "content": [
+        { "type": "decisionItem", "attrs": { "localId": "d-6", "state": "DECIDED" }, "content": [] }
+      ]
+    }
+  ]
+}

@@ -5,8 +5,8 @@
 **Deadline:** submit by Dec 22, 2026, 10:00 Riyadh (hard deadline 23:00 Riyadh / 12:00 PST).
 
 ## Status
-- **Current step:** 2.2 — Confluence capture trigger
-- **Next:** 2.3 — Jira comment capture
+- **Current step:** 2.2 + 2.3 — USER live test (page with /decision, Jira comment)
+- **Next:** 2.4 — Ledger page UI
 
 ## Checklist
 
@@ -48,8 +48,14 @@
   - `src/lib/keywords.js`: extractKeywords (stopwords, aliases e.g. postgres→postgresql, plural stemming), scoreDecision (title 3 / topics 2 / rationale 1), rankDecisions, titleKey
   - Tests: `npm test` (node:test, fake SQL client) — 16/16 pass
   - Verified on real Forge SQL via a temporary token-protected web trigger (11/11 steps OK), then removed it (URL, module, code, secret) → v3.1.0, RoA-eligible again
-- [ ] 2.2 Confluence capture trigger + ADF fixture tests
-- [ ] 2.3 Jira comment capture trigger
+- [ ] 2.2 Confluence capture trigger + ADF fixture tests — code + tests done, awaiting live test
+  - `src/lib/adf.js`: extractDecisions (DECIDED only, recurses into panels/layouts), rationale = inline "because…" → next paragraph ("Because:" stripped) → "Section: <heading>"; adfToText/adfToLines
+  - `src/triggers/confluence.js`: fetch v2 page as app (`body-format=atlas_doc_format&include-labels=true`), upsert per decision, prune removed ones; topics = labels + title/heading keywords; logs node types if 0 found
+  - Fixture `test/fixtures/architecture-review.adf.json`
+- [ ] 2.3 Jira comment capture trigger — code + tests done, awaiting live test
+  - `src/lib/comments.js` parseDecisionComment: must start with "Decision:"; rationale after "Because:" else next line(s) else inline "because"
+  - `src/triggers/jira.js` captureComment: source = comment id (edits update, un-decision edits delete), skips restricted comments, link `/browse/KEY?focusedCommentId=`
+  - Tests: 36/36 pass. Deployed v3.2.0
 - [ ] 2.4 Ledger page UI
 - [ ] 2.5 Guard panel + issue-created trigger + Ask Decision Keeper
 - [ ] 2.6 Demo data script (Nakhla Pay), idempotent
